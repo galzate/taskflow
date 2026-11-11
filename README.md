@@ -1,4 +1,4 @@
-# TaskFlow — Sistema interno de gestión de tareas
+# TaskFlow — Sistema Interno de Gestión de Tareas
 
 Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear tareas, asignarlas a colaboradores y hacer seguimiento a su estado.
 
