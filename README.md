@@ -27,7 +27,7 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 - Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
 
 ### Interfaz
-- Mensajes de éxito y error visibles en español que se cierran automáticamente a los 5 segundos.
+- Mensajes de éxito y error visibles en español que se cierran automáticamente a los 3 segundos.
 - Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado.
 
 ### Reglas de negocio implementadas
