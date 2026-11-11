@@ -1,18 +1,16 @@
-/* ============================================================================
-   10-11-2026 Construido por: Ing GAAE
-   Required business query: tasks by user, optional status filter and ordered
-   by creation date.
-   ============================================================================ */
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Required query: tasks by user, status filter and creation-date order.
+-- ============================================================================
 
 USE TaskFlowDb;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Parameterized query used by the API.
-   @assignedUserId : user to filter by (required).
-   @status         : optional status filter (NULL returns every status).
-   @sortDirection  : ASC or DESC ordering by CreatedAt.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Parameterized query used by the API.
+-- @assignedUserId : user to filter by (required).
+-- @status         : optional status filter (NULL returns every status).
+-- @sortDirection  : ASC or DESC ordering by CreatedAt.
+-- ----------------------------------------------------------------------------
 DECLARE @assignedUserId INT = 1;
 DECLARE @status VARCHAR(20) = NULL;          -- NULL = all statuses
 DECLARE @sortDirection VARCHAR(4) = 'DESC';  -- ASC or DESC
@@ -37,10 +35,10 @@ ORDER BY
     CASE WHEN @sortDirection = 'DESC' THEN t.CreatedAt END DESC;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Equivalent query without a user
-   filter, useful for the global task list.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Equivalent query without a user
+-- filter, useful for the global task list.
+-- ----------------------------------------------------------------------------
 DECLARE @globalStatus VARCHAR(20) = 'Pending';
 
 SELECT
@@ -57,9 +55,9 @@ WHERE (@globalStatus IS NULL OR t.Status = @globalStatus)
 ORDER BY t.CreatedAt DESC;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Task count grouped by user and status.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Task count grouped by user and status.
+-- ----------------------------------------------------------------------------
 SELECT
     u.Id AS AssignedUserId,
     u.Name AS AssignedUserName,

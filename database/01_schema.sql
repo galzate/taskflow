@@ -1,8 +1,7 @@
-/* ============================================================================
-   10-11-2026 Construido por: Ing GAAE
-   Creates the TaskFlow database schema: Users and Tasks tables.
-   Engine: Microsoft SQL Server 2022
-   ============================================================================ */
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Creates the TaskFlow database schema (Users, Tasks).
+-- Engine: Microsoft SQL Server 2022
+-- ============================================================================
 
 IF DB_ID(N'TaskFlowDb') IS NULL
 BEGIN
@@ -13,11 +12,11 @@ GO
 USE TaskFlowDb;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Creates the Users table.
-   - Id is the primary key.
-   - Email must be unique.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Creates the Users table.
+-- - Id is the primary key.
+-- - Email must be unique.
+-- ----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Users
@@ -34,14 +33,14 @@ BEGIN
 END;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Creates the Tasks table.
-   - Id is the primary key.
-   - Title and Description are required.
-   - AssignedUserId is a foreign key to Users (a task must have an owner).
-   - Status is restricted to Pending, InProgress and Done.
-   - Metadata stores a JSON document validated with ISJSON.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Creates the Tasks table.
+-- - Id is the primary key.
+-- - Title and Description are required.
+-- - AssignedUserId is a foreign key to Users (a task must have an owner).
+-- - Status is restricted to Pending, InProgress and Done.
+-- - Metadata stores a JSON document validated with ISJSON.
+-- ----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Tasks', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Tasks

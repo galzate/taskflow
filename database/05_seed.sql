@@ -1,14 +1,13 @@
-/* ============================================================================
-   10-11-2026 Construido por: Ing GAAE
-   Seeds demo users and tasks so the application can be tested immediately.
-   ============================================================================ */
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Seeds demo users and tasks for local testing.
+-- ============================================================================
 
 USE TaskFlowDb;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Demo users.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Demo users.
+-- ----------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM dbo.Users)
 BEGIN
     INSERT INTO dbo.Users (Name, Email)
@@ -19,9 +18,9 @@ BEGIN
 END;
 GO
 
-/* ----------------------------------------------------------------------------
-   10-11-2026 Construido por: Ing GAAE - Demo tasks with JSON metadata.
-   ---------------------------------------------------------------------------- */
+-- ----------------------------------------------------------------------------
+-- 10-11-2026 Construido por: Ing GAAE - Demo tasks with JSON metadata.
+-- ----------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM dbo.Tasks)
 BEGIN
     INSERT INTO dbo.Tasks (Title, Description, Status, AssignedUserId, Metadata)

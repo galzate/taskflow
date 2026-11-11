@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 10-11-2026 Construido por: Ing GAAE
+# 10-11-2026 Construido por: Ing GAAE - Initializes the database schema, indexes and seed data.
 # Executes the schema, index and seed scripts against the SQL Server container.
 
 set -euo pipefail
