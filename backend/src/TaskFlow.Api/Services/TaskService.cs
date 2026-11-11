@@ -99,14 +99,14 @@ public class TaskService : ITaskService
         if (task.Status == TaskItemStatus.Pending && request.Status == TaskItemStatus.Done)
         {
             throw new BusinessRuleException(
-                "Una tarea no puede pasar directamente de Pendiente a Completada. Primero muévela a En progreso.");
+                "Una tarea no puede pasar directamente de Pending a Done. Primero muévela a In Progress.");
         }
 
         // Business rule: a Done task must be reopened through InProgress.
         if (task.Status == TaskItemStatus.Done && request.Status == TaskItemStatus.Pending)
         {
             throw new BusinessRuleException(
-                "Una tarea completada no puede volver a Pendiente. Primero muévela a En progreso.");
+                "Una tarea completada no puede volver a Pending. Primero muévela a In Progress.");
         }
 
         task.Status = request.Status;

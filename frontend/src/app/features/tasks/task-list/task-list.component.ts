@@ -20,9 +20,9 @@ import { SelectComponent, SelectOption } from '../../../shared/components/select
 })
 export class TaskListComponent implements OnInit {
   private static readonly statusLabels: Record<TaskStatus, string> = {
-    Pending: 'Pendiente',
-    InProgress: 'En progreso',
-    Done: 'Completada',
+    Pending: 'Pending',
+    InProgress: 'In Progress',
+    Done: 'Done',
   };
 
   private static readonly priorityLabels: Record<string, string> = {
@@ -116,6 +116,12 @@ export class TaskListComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
+    // Client-side validation: a task cannot jump directly from Pending to Done.
+    if (task.status === 'Pending' && status === 'Done') {
+      this.errorMessage.set('No se permite cambiar una tarea directamente de Pending a Done.');
+      return;
+    }
+
     this.taskService.updateStatus(task.id, status).subscribe({
       next: (updatedTask) => {
         this.tasks.update((tasks) =>
@@ -134,10 +140,7 @@ export class TaskListComponent implements OnInit {
       return true;
     }
 
-    // Business rule: Pending cannot jump directly to Done, and Done cannot go back to Pending.
-    if (task.status === 'Pending' && status === 'Done') {
-      return true;
-    }
+    // Business rule: a Done task cannot go back to Pending.
     if (task.status === 'Done' && status === 'Pending') {
       return true;
     }
@@ -150,10 +153,10 @@ export class TaskListComponent implements OnInit {
       return 'Este es el estado actual.';
     }
     if (task.status === 'Pending' && status === 'Done') {
-      return 'No permitido: primero mueve la tarea a En progreso.';
+      return 'No permitido: primero mueve la tarea a In Progress.';
     }
     if (task.status === 'Done' && status === 'Pending') {
-      return 'No permitido: reabre la tarea pasando por En progreso.';
+      return 'No permitido: reabre la tarea pasando por In Progress.';
     }
     return `Cambiar estado a ${this.statusLabel(status)}.`;
   }

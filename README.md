@@ -1,6 +1,6 @@
 # TaskFlow — Sistema Interno de Gestión de Tareas
 
-**TaskFlow** es una aplicación web interna para administrar el trabajo de un equipo. Permite registrar usuarios, crear tareas, asignarlas a un colaborador y seguir su avance mediante tres estados: **Pendiente**, **En progreso** y **Completada**. Incluye filtros por usuario y estado, orden por fecha de creación y validaciones de negocio en el backend y en la interfaz.
+**TaskFlow** es una aplicación web interna para administrar el trabajo de un equipo. Permite registrar usuarios, crear tareas, asignarlas a un colaborador y seguir su avance mediante tres estados: **Pending**, **In Progress** y **Done**. Incluye filtros por usuario y estado, orden por fecha de creación y validaciones de negocio en el backend y en la interfaz.
 
 > **Desarrollado por:** Ing. GAAE
 > **Repositorio Público:** <https://github.com/galzate/taskflow>
@@ -13,7 +13,7 @@
 | Base de datos | Microsoft SQL Server 2022 (contenedor Docker) |
 | Arquitectura | Controller → Service → Repository · DTOs · SOLID |
 
-> **Idioma:** el código fuente, los identificadores y el modelo de datos están en inglés. La interfaz de usuario y los mensajes visibles están en español; los estados se muestran como **Pendiente**, **En progreso** y **Completada**, conservando `Pending`, `InProgress` y `Done` en la API y la base de datos.
+> **Idioma:** el código fuente, los identificadores y el modelo de datos están en inglés. La interfaz de usuario y los mensajes visibles están en español; los estados se muestran como **Pending**, **In Progress** y **Done**, conservando `Pending`, `InProgress` y `Done` en la API y la base de datos.
 
 ---
 
@@ -203,7 +203,7 @@ flowchart TB
 - Cabecera fija: se mantiene visible mientras el resto del contenido se desplaza.
 - Mensajes de éxito y error en español que se cierran automáticamente a los 2 segundos.
 - Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado (↑, ↓, Inicio, Fin, Enter, Esc).
-- Contador resumen del listado: `1 tarea - 0 pendientes - 0 en progreso - 1 completada`.
+- Contador resumen del listado: `1 tarea - 0 Pending - 0 In Progress - 1 Done`.
 - Prioridad por defecto **Alta** al abrir o reiniciar el formulario de tarea.
 
 ### Capturas de pantalla
@@ -380,7 +380,7 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 {
   "title": "Regla de negocio incumplida",
   "status": 422,
-  "detail": "Una tarea no puede pasar directamente de Pendiente a Completada. Primero muévela a En progreso.",
+  "detail": "Una tarea no puede pasar directamente de Pending a Done. Primero muévela a In Progress.",
   "instance": "/api/tasks/7/status"
 }
 ```

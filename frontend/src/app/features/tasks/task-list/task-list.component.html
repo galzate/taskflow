@@ -5,9 +5,9 @@
       <h2>Tareas</h2>
       <p class="subtitle">
         {{ counts().total }} {{ counts().total === 1 ? 'tarea' : 'tareas' }} -
-        {{ counts().pending }} {{ counts().pending === 1 ? 'pendiente' : 'pendientes' }} -
-        {{ counts().inProgress }} en progreso -
-        {{ counts().done }} {{ counts().done === 1 ? 'completada' : 'completadas' }}
+        {{ counts().pending }} Pending -
+        {{ counts().inProgress }} In Progress -
+        {{ counts().done }} Done
       </p>
     </div>
     <button type="button" class="btn ghost" (click)="loadTasks()" [disabled]="loading()">
