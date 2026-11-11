@@ -206,6 +206,12 @@ flowchart TB
 - Contador resumen del listado: `1 tarea - 0 pendientes - 0 en progreso - 1 completada`.
 - Prioridad por defecto **Alta** al abrir o reiniciar el formulario de tarea.
 
+### Capturas de pantalla
+
+![TaskFlow — interfaz principal](docs/screenshots/taskflow-ui.png)
+
+La imagen muestra el listado con la cabecera fija, el formulario de usuario y el formulario de tarea, el filtro por estado y el contador resumen del listado.
+
 ---
 
 ## 5. Estructura del repositorio
