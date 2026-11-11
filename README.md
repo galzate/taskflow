@@ -3,8 +3,8 @@
 **TaskFlow** es una aplicación web interna para administrar el trabajo de un equipo. Permite registrar usuarios, crear tareas, asignarlas a un colaborador y seguir su avance mediante tres estados: **Pendiente**, **En progreso** y **Completada**. Incluye filtros por usuario y estado, orden por fecha de creación y validaciones de negocio en el backend y en la interfaz.
 
 > **Desarrollado por:** Ing. GAAE
-> **Repositorio público:** <https://github.com/galzate/taskflow>
-> **Contexto:** Prueba técnica Fullstack Semisenior · noviembre de 2026
+> **Repositorio Público:** <https://github.com/galzate/taskflow>
+> **Contexto:** Prueba Técnica Fullstack Senior · noviembre de 2026
 
 | Capa | Tecnología |
 |---|---|
@@ -597,4 +597,4 @@ git push -u origin main
 
 **Ing. GAAE** — desarrollo completo del sistema (backend, frontend, base de datos, pruebas y documentación).
 
-Prueba técnica Fullstack Semisenior · noviembre de 2026.
+Prueba Técnica Fullstack Senior · noviembre de 2026.
