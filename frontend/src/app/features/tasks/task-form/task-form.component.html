@@ -38,12 +38,8 @@
     <app-select inputId="task-priority" formControlName="priority" [options]="priorityOptions" />
   </div>
 
-  @if (errorMessage()) {
-    <p class="alert error" role="alert">{{ errorMessage() }}</p>
-  }
-  @if (successMessage()) {
-    <p class="alert success" role="status">{{ successMessage() }}</p>
-  }
+  <app-alert type="error" [message]="errorMessage()" (dismissed)="errorMessage.set(null)" />
+  <app-alert type="success" [message]="successMessage()" (dismissed)="successMessage.set(null)" />
 
   <button type="submit" class="btn primary" [disabled]="submitting()">
     {{ submitting() ? 'Creando...' : 'Crear Tarea' }}

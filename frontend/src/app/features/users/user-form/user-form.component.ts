@@ -2,11 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { UserService } from '../../../core/services/user.service';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Reactive form to create users.
 @Component({
   selector: 'app-user-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AlertComponent],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.css',
 })

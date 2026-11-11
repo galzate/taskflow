@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.alert {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.alert.leaving {
+  opacity: 0;
+  transform: translateY(-4px);
+}

@@ -26,6 +26,10 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 - Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done`.
 - Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
 
+### Interfaz
+- Mensajes de éxito y error visibles en español que se cierran automáticamente a los 5 segundos.
+- Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado.
+
 ### Reglas de negocio implementadas
 1. El **título** de la tarea es obligatorio.
 2. Toda tarea debe tener un **usuario asignado existente**.

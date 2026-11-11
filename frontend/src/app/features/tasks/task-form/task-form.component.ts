@@ -5,12 +5,13 @@ import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
 import { UserService } from '../../../core/services/user.service';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Reactive form to create tasks assigned to a user.
 @Component({
   selector: 'app-task-form',
-  imports: [ReactiveFormsModule, SelectComponent],
+  imports: [ReactiveFormsModule, SelectComponent, AlertComponent],
   templateUrl: './task-form.component.html',
   styleUrl: './task-form.component.css',
 })

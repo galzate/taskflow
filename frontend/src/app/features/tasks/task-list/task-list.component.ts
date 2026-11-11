@@ -7,12 +7,13 @@ import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
 import { UserService } from '../../../core/services/user.service';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Task list with status/user filters and status transitions.
 @Component({
   selector: 'app-task-list',
-  imports: [FormsModule, DatePipe, SelectComponent],
+  imports: [FormsModule, DatePipe, SelectComponent, AlertComponent],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
 })
