@@ -203,7 +203,7 @@ flowchart TB
 - Cabecera fija: se mantiene visible mientras el resto del contenido se desplaza.
 - Mensajes de éxito y error en español que se cierran automáticamente a los 2 segundos.
 - Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado (↑, ↓, Inicio, Fin, Enter, Esc).
-- Contador resumen del listado: `1 tarea - 0 Pending - 0 In Progress - 1 Done`.
+- Contador resumen del listado: `1 Tarea - 0 Pending - 0 In Progress - 1 Done`.
 - Prioridad por defecto **Alta** al abrir o reiniciar el formulario de tarea.
 
 ### Capturas de pantalla
