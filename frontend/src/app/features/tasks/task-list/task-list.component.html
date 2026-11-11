@@ -10,9 +10,6 @@
         {{ counts().done }} Done
       </p>
     </div>
-    <button type="button" class="btn ghost" (click)="loadTasks()" [disabled]="loading()">
-      {{ loading() ? 'Cargando...' : 'Actualizar' }}
-    </button>
   </header>
 
   <div class="filters">
