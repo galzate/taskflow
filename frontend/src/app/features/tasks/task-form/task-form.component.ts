@@ -40,7 +40,7 @@ export class TaskFormComponent implements OnInit {
     title: ['', [Validators.required, Validators.maxLength(200)]],
     description: [''],
     assignedUserId: [null as number | null, [Validators.required, Validators.min(1)]],
-    priority: ['Medium'],
+    priority: ['High'],
   });
 
   constructor() {
@@ -76,12 +76,12 @@ export class TaskFormComponent implements OnInit {
         title: value.title ?? '',
         description: value.description ? value.description : null,
         assignedUserId: Number(value.assignedUserId),
-        metadata: { priority: value.priority ?? 'Medium' },
+        metadata: { priority: value.priority ?? 'High' },
       })
       .subscribe({
         next: (task) => {
           this.successMessage.set(`Tarea "${task.title}" creada correctamente.`);
-          this.form.reset({ title: '', description: '', assignedUserId: null, priority: 'Medium' });
+          this.form.reset({ title: '', description: '', assignedUserId: null, priority: 'High' });
           this.submitting.set(false);
           this.events.notifyTaskCreated();
         },
