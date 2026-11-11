@@ -28,7 +28,7 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 
 ### Interfaz
 - Cabecera fija: se mantiene visible mientras el resto del contenido se desplaza.
-- Mensajes de éxito y error visibles en español que se cierran automáticamente a los 3 segundos.
+- Mensajes de éxito y error visibles en español que se cierran automáticamente a los 2 segundos.
 - Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado.
 
 ### Reglas de negocio implementadas

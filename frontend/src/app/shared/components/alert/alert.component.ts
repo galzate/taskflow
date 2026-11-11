@@ -11,7 +11,7 @@ export class AlertComponent {
 
   readonly message = input<string | null>(null);
   readonly type = input<'success' | 'error'>('success');
-  readonly duration = input(3000);
+  readonly duration = input(2000);
   readonly dismissed = output<void>();
 
   readonly leaving = signal(false);
