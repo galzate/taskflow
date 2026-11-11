@@ -1,15 +1,16 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
 import { UserService } from '../../../core/services/user.service';
+import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Reactive form to create tasks assigned to a user.
 @Component({
   selector: 'app-task-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SelectComponent],
   templateUrl: './task-form.component.html',
   styleUrl: './task-form.component.css',
 })
@@ -23,6 +24,16 @@ export class TaskFormComponent implements OnInit {
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+
+  readonly userOptions = computed<SelectOption[]>(() =>
+    this.users().map((user) => ({ value: user.id, label: `${user.name} (${user.email})` })),
+  );
+
+  readonly priorityOptions: SelectOption[] = [
+    { value: 'Low', label: 'Baja' },
+    { value: 'Medium', label: 'Media' },
+    { value: 'High', label: 'Alta' },
+  ];
 
   readonly form = this.formBuilder.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],

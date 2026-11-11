@@ -64,6 +64,7 @@ app_taskflow/
 ├── frontend/
 │   └── src/app/
 │       ├── core/            # modelos, servicios HTTP, configuración
+│       ├── shared/          # componentes reutilizables (select accesible)
 │       └── features/
 │           ├── users/       # formulario de usuarios
 │           └── tasks/       # formulario y lista de tareas

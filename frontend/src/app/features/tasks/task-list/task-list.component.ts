@@ -7,11 +7,12 @@ import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
 import { UserService } from '../../../core/services/user.service';
+import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Task list with status/user filters and status transitions.
 @Component({
   selector: 'app-task-list',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, SelectComponent],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
 })
@@ -49,6 +50,21 @@ export class TaskListComponent implements OnInit {
   });
 
   readonly statuses: TaskStatus[] = ['Pending', 'InProgress', 'Done'];
+
+  readonly statusOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todos' },
+    ...this.statuses.map((status) => ({ value: status, label: this.statusLabel(status) })),
+  ]);
+
+  readonly userOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todos los usuarios' },
+    ...this.users().map((user) => ({ value: user.id, label: user.name })),
+  ]);
+
+  readonly sortOptions: SelectOption[] = [
+    { value: 'desc', label: 'Más recientes primero' },
+    { value: 'asc', label: 'Más antiguas primero' },
+  ];
 
   statusFilter: TaskStatus | '' = '';
   userFilter: number | '' = '';

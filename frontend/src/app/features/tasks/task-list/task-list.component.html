@@ -15,33 +15,32 @@
   </header>
 
   <div class="filters">
-    <label>
-      <span>Estado</span>
-      <select [(ngModel)]="statusFilter" (ngModelChange)="loadTasks()">
-        <option value="">Todos</option>
-        @for (status of statuses; track status) {
-          <option [value]="status">{{ statusLabel(status) }}</option>
-        }
-      </select>
-    </label>
+    <div class="filter">
+      <label for="filter-status">Estado</label>
+      <app-select
+        inputId="filter-status"
+        [(ngModel)]="statusFilter"
+        (ngModelChange)="loadTasks()"
+        [options]="statusOptions()" />
+    </div>
 
-    <label>
-      <span>Usuario</span>
-      <select [(ngModel)]="userFilter" (ngModelChange)="loadTasks()">
-        <option value="">Todos los usuarios</option>
-        @for (user of users(); track user.id) {
-          <option [ngValue]="user.id">{{ user.name }}</option>
-        }
-      </select>
-    </label>
+    <div class="filter">
+      <label for="filter-user">Usuario</label>
+      <app-select
+        inputId="filter-user"
+        [(ngModel)]="userFilter"
+        (ngModelChange)="loadTasks()"
+        [options]="userOptions()" />
+    </div>
 
-    <label>
-      <span>Ordenar por fecha de creación</span>
-      <select [(ngModel)]="sortOrder" (ngModelChange)="loadTasks()">
-        <option value="desc">Más recientes primero</option>
-        <option value="asc">Más antiguas primero</option>
-      </select>
-    </label>
+    <div class="filter">
+      <label for="filter-sort">Ordenar por fecha de creación</label>
+      <app-select
+        inputId="filter-sort"
+        [(ngModel)]="sortOrder"
+        (ngModelChange)="loadTasks()"
+        [options]="sortOptions" />
+    </div>
   </div>
 
   @if (errorMessage()) {

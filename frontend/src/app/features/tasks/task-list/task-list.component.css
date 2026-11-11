@@ -9,19 +9,18 @@
   margin-bottom: 1rem;
 }
 
-.filters label {
+.filter {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.filter label {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-.filters select {
-  text-transform: none;
 }
 
 .task-list {

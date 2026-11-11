@@ -20,12 +20,11 @@
 
   <div class="field">
     <label for="task-user">Usuario asignado *</label>
-    <select id="task-user" formControlName="assignedUserId">
-      <option [ngValue]="null" disabled>Selecciona un usuario</option>
-      @for (user of users(); track user.id) {
-        <option [ngValue]="user.id">{{ user.name }} ({{ user.email }})</option>
-      }
-    </select>
+    <app-select
+      inputId="task-user"
+      formControlName="assignedUserId"
+      placeholder="Selecciona un usuario"
+      [options]="userOptions()" />
     @if (form.controls.assignedUserId.invalid && form.controls.assignedUserId.touched) {
       <p class="field-error">Debes seleccionar un usuario asignado.</p>
     }
@@ -36,11 +35,7 @@
 
   <div class="field">
     <label for="task-priority">Prioridad</label>
-    <select id="task-priority" formControlName="priority">
-      <option value="Low">Baja</option>
-      <option value="Medium">Media</option>
-      <option value="High">Alta</option>
-    </select>
+    <app-select inputId="task-priority" formControlName="priority" [options]="priorityOptions" />
   </div>
 
   @if (errorMessage()) {
