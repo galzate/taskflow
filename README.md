@@ -94,7 +94,6 @@ El diagrama completo está en [`docs/architecture.mmd`](docs/architecture.mmd) y
 %% ============================================================================
 %% TaskFlow - Arquitectura y separación de responsabilidades
 %% 10-11-2026 Construido por: Ing GAAE
-%%
 %% Regla de dependencias: las flechas apuntan hacia la infraestructura
 %% (Presentación -> Aplicación -> Infraestructura). Ninguna capa salta a otra.
 %% El dominio (Entities, Enums, Exceptions) no depende de controllers ni de EF Core.
