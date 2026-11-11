@@ -94,6 +94,7 @@ El diagrama completo está en [`docs/architecture.mmd`](docs/architecture.mmd) y
 %% ============================================================================
 %% TaskFlow - Arquitectura y separación de responsabilidades
 %% 10-11-2026 Construido por: Ing GAAE
+%% Manejo de errores: ExceptionHandlingMiddleware + ProblemDetails (400/404/405/422/500).
 %% Regla de dependencias: las flechas apuntan hacia la infraestructura
 %% (Presentación -> Aplicación -> Infraestructura). Ninguna capa salta a otra.
 %% El dominio (Entities, Enums, Exceptions) no depende de controllers ni de EF Core.
@@ -378,6 +379,25 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 }
 ```
 
+### 8.1 Manejo de errores
+
+Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación automática de ASP.NET Core; todas las respuestas usan **ProblemDetails** con mensajes en español.
+
+| Situación | Código | `title` | Origen |
+|---|---|---|---|
+| Datos inválidos (título, descripción, email, estado) | `400` | Error de validación | `DataAnnotations` / `ValidationException` |
+| JSON malformado o cuerpo ausente | `400` | Error de validación | Model binding |
+| Ruta inexistente | `404` | Recurso no encontrado | `UseStatusCodePages` |
+| Método HTTP no permitido | `405` | Método no permitido | `UseStatusCodePages` |
+| Usuario o tarea inexistente | `404` | Recurso no encontrado | `NotFoundException` |
+| Email duplicado | `422` | Regla de negocio incumplida | `BusinessRuleException` |
+| Transición de estado inválida | `422` | Regla de negocio incumplida | `BusinessRuleException` |
+| Error inesperado | `500` | Error interno del servidor | Excepción no controlada |
+
+- El middleware registra `LogWarning` para errores 4xx y `LogError` para errores 500.
+- El frontend traduce `detail`, `title` o el primer error de validación a una alerta; si la API no responde (`status = 0`) muestra “No se pudo conectar con el servidor…”.
+- La base de datos es la última barrera: `PK`, `FK`, `UNIQUE`, `CHECK` e `ISJSON` impiden datos inconsistentes.
+
 ---
 
 ## 9. Base de datos
@@ -475,7 +495,7 @@ cd frontend
 npm test -- --watch=false
 ```
 
-Pruebas de humo del componente raíz: creación del componente y render del encabezado `TaskFlow`.
+Pruebas actuales (6): humo del componente raíz (creación y render del encabezado `TaskFlow`) y traducción de errores de API (ProblemDetails, validación, error de red y caso genérico).
 
 ---
 
@@ -485,7 +505,7 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 2. **DTOs separados de las entidades.** Los contratos de la API no exponen directamente el modelo de EF Core.
 3. **Scripts SQL como fuente de verdad del esquema.** El entregable exige un script de creación, así que el esquema se crea con `database/01_schema.sql` y no con migraciones. EF Core se usa solo para consultas y escrituras.
 4. **Validación en dos niveles.** `DataAnnotations` en los DTOs (400 automático de `[ApiController]`) y reglas de negocio en los servicios (422 mediante `BusinessRuleException`).
-5. **Manejo global de errores.** Middleware que traduce excepciones de dominio a **ProblemDetails** con códigos 400 / 404 / 422 / 500.
+5. **Manejo global de errores.** Middleware que traduce excepciones de dominio a **ProblemDetails** con códigos 400 / 404 / 422 / 500, más `UseStatusCodePages` para 404/405 y validación automática localizada al español.
 6. **Estado como string con CHECK.** Facilita la lectura en la base y en la API; el enum se serializa como texto (`JsonStringEnumConverter`) y EF Core lo mapea con `HasConversion<string>()`.
 7. **JSON en base de datos y en la API.** Columna `Metadata nvarchar(max)` validada con `ISJSON`, expuesta como `JsonElement` en los DTOs.
 8. **Frontend con Angular moderno.** Componentes standalone, `signals`, formularios reactivos, `HttpClient` con `provideHttpClient()` y manejo de errores basado en ProblemDetails.
@@ -526,10 +546,13 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 | Usuario inexistente al asignar | `404` |
 | `Pending → Done` directo | `422` (regla de negocio) |
 | Tarea inexistente | `404` |
+| JSON malformado o cuerpo ausente | `400` con mensaje en español |
+| Ruta inexistente | `404` con ProblemDetails |
+| Método HTTP no permitido | `405` con ProblemDetails |
 | Filtro por estado + orden por fecha | `200` |
 | Filtro por usuario | `200` |
 | Pruebas unitarias backend (xUnit) | `9/9` correctas |
-| Smoke tests frontend (Vitest) | `2/2` correctas |
+| Pruebas frontend (Vitest) | `6/6` correctas |
 | `JSON_VALUE` / `OPENJSON` / `FOR JSON` / `ISJSON` | Ejecutados correctamente |
 
 ---

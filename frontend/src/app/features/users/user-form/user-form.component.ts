@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { UserService } from '../../../core/services/user.service';
+import { extractErrorMessage } from '../../../core/utils/error-message';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
 // 10-11-2026 Construido por: Ing GAAE - Reactive form to create users.
@@ -45,14 +46,9 @@ export class UserFormComponent {
         this.events.notifyUserCreated();
       },
       error: (error: unknown) => {
-        this.errorMessage.set(this.extractErrorMessage(error));
+        this.errorMessage.set(extractErrorMessage(error));
         this.submitting.set(false);
       },
     });
-  }
-
-  private extractErrorMessage(error: unknown): string {
-    const httpError = error as { error?: { detail?: string; title?: string }; message?: string };
-    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Ocurrió un error inesperado.';
   }
 }

@@ -25,7 +25,15 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
-        var problemDetails = new ValidationProblemDetails(context.ModelState)
+        var errors = context.ModelState
+            .Where(entry => entry.Value is { Errors.Count: > 0 })
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value!.Errors
+                    .Select(error => LocalizeModelError(entry.Key, error.ErrorMessage))
+                    .ToArray());
+
+        var problemDetails = new ValidationProblemDetails(errors)
         {
             Status = StatusCodes.Status400BadRequest,
             Title = "Error de validación",
@@ -62,6 +70,35 @@ var app = builder.Build();
 
 // Global error handling and CORS must run before the controllers.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// 10-11-2026 Construido por: Ing GAAE - ProblemDetails for empty error responses (404, 405, etc.).
+app.UseStatusCodePages(async statusCodeContext =>
+{
+    var response = statusCodeContext.HttpContext.Response;
+    if (response.HasStarted)
+    {
+        return;
+    }
+
+    var (title, detail) = response.StatusCode switch
+    {
+        StatusCodes.Status404NotFound => ("Recurso no encontrado", "La ruta solicitada no existe."),
+        StatusCodes.Status405MethodNotAllowed => ("Método no permitido", "El método HTTP no está permitido para esta ruta."),
+        _ => ("Error en la solicitud", "No se pudo procesar la solicitud.")
+    };
+
+    var problemDetails = new ProblemDetails
+    {
+        Status = response.StatusCode,
+        Title = title,
+        Detail = detail,
+        Instance = statusCodeContext.HttpContext.Request.Path
+    };
+
+    response.ContentType = "application/problem+json";
+    await response.WriteAsync(JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+});
+
 app.UseCors("AngularClient");
 
 if (app.Environment.IsDevelopment())
@@ -74,3 +111,19 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.Run();
+
+// 10-11-2026 Construido por: Ing GAAE - Translates framework model errors to Spanish.
+static string LocalizeModelError(string key, string message)
+{
+    if (key == "request" || string.IsNullOrEmpty(key) || message.Contains("request body", StringComparison.OrdinalIgnoreCase))
+    {
+        return "El cuerpo de la solicitud es obligatorio.";
+    }
+
+    if (key == "$" || key.StartsWith("$.", StringComparison.Ordinal))
+    {
+        return "El cuerpo de la solicitud no es un JSON válido.";
+    }
+
+    return string.IsNullOrWhiteSpace(message) ? "El valor enviado no es válido." : message;
+}

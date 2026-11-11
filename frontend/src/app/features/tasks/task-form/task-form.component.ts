@@ -5,6 +5,7 @@ import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
 import { UserService } from '../../../core/services/user.service';
+import { extractErrorMessage } from '../../../core/utils/error-message';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
@@ -55,7 +56,7 @@ export class TaskFormComponent implements OnInit {
   loadUsers(): void {
     this.userService.getAll().subscribe({
       next: (users) => this.users.set(users),
-      error: (error: unknown) => this.errorMessage.set(this.extractErrorMessage(error)),
+      error: (error: unknown) => this.errorMessage.set(extractErrorMessage(error)),
     });
   }
 
@@ -86,14 +87,9 @@ export class TaskFormComponent implements OnInit {
           this.events.notifyTaskCreated();
         },
         error: (error: unknown) => {
-          this.errorMessage.set(this.extractErrorMessage(error));
+          this.errorMessage.set(extractErrorMessage(error));
           this.submitting.set(false);
         },
       });
-  }
-
-  private extractErrorMessage(error: unknown): string {
-    const httpError = error as { error?: { detail?: string; title?: string }; message?: string };
-    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Ocurrió un error inesperado.';
   }
 }
