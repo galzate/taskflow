@@ -22,24 +22,26 @@
     }
   </div>
 
-  <div class="field">
-    <label for="task-user">Usuario asignado *</label>
-    <app-select
-      inputId="task-user"
-      formControlName="assignedUserId"
-      placeholder="Selecciona un usuario"
-      [options]="userOptions()" />
-    @if (form.controls.assignedUserId.invalid && form.controls.assignedUserId.touched) {
-      <p class="field-error">Debes seleccionar un usuario asignado.</p>
-    }
-    @if (users().length === 0) {
-      <p class="hint">Aún no hay usuarios. Crea uno primero.</p>
-    }
-  </div>
+  <div class="field-row">
+    <div class="field">
+      <label for="task-user">Usuario asignado *</label>
+      <app-select
+        inputId="task-user"
+        formControlName="assignedUserId"
+        placeholder="Selecciona un usuario"
+        [options]="userOptions()" />
+      @if (form.controls.assignedUserId.invalid && form.controls.assignedUserId.touched) {
+        <p class="field-error">Debes seleccionar un usuario asignado.</p>
+      }
+      @if (users().length === 0) {
+        <p class="hint">Aún no hay usuarios. Crea uno primero.</p>
+      }
+    </div>
 
-  <div class="field">
-    <label for="task-priority">Prioridad</label>
-    <app-select inputId="task-priority" formControlName="priority" [options]="priorityOptions" />
+    <div class="field">
+      <label for="task-priority">Prioridad</label>
+      <app-select inputId="task-priority" formControlName="priority" [options]="priorityOptions" />
+    </div>
   </div>
 
   <app-alert type="error" [message]="errorMessage()" (dismissed)="errorMessage.set(null)" />
