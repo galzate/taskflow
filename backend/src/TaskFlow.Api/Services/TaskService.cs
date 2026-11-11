@@ -77,6 +77,12 @@ public class TaskService : ITaskService
         UpdateTaskStatusRequest request,
         CancellationToken cancellationToken = default)
     {
+        // Defensive check: reject numeric values that are not part of the enum.
+        if (!Enum.IsDefined(request.Status))
+        {
+            throw new ValidationException($"Status '{request.Status}' is not valid.");
+        }
+
         var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
         if (task is null)
         {

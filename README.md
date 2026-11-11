@@ -47,7 +47,7 @@ Pending ──► InProgress ──► Done
 ```
 app_taskflow/
 ├── backend/
-│   └── src/TaskFlow.Api/
+│   ├── src/TaskFlow.Api/
 │       ├── Controllers/     # Endpoints REST (Users, Tasks)
 │       ├── Services/        # Reglas de negocio + interfaces
 │       ├── Repositories/    # Acceso a datos con EF Core + interfaces
@@ -58,6 +58,7 @@ app_taskflow/
 │       ├── Exceptions/      # Excepciones de dominio
 │       ├── Middleware/      # Manejo global de errores (ProblemDetails)
 │       └── Program.cs       # Bootstrap, DI, CORS, OpenAPI/Scalar
+│   └── tests/TaskFlow.Api.Tests/  # Pruebas unitarias de reglas de negocio (xUnit)
 ├── frontend/
 │   └── src/app/
 │       ├── core/            # modelos, servicios HTTP, configuración
@@ -268,7 +269,39 @@ La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en
 
 ---
 
-## 7. Decisiones técnicas
+---
+
+## 7. Pruebas automatizadas
+
+### Backend (xUnit)
+
+```bash
+cd backend
+dotnet test
+```
+
+Cobertura actual (8 pruebas):
+
+- `Pending → Done` directo lanza `BusinessRuleException`.
+- `Pending → InProgress` y `InProgress → Done` actualizan el estado.
+- Un valor numérico fuera del enum lanza `ValidationException`.
+- Una tarea inexistente lanza `NotFoundException`.
+- Crear una tarea con un usuario inexistente lanza `NotFoundException`.
+- Una metadata que no es objeto JSON lanza `ValidationException`.
+- Crear una tarea válida inicia en estado `Pending`.
+
+### Frontend (Vitest)
+
+```bash
+cd frontend
+npm test -- --watch=false
+```
+
+Smoke tests del componente raíz: creación del componente y render del encabezado `TaskFlow`.
+
+---
+
+## 8. Decisiones técnicas
 
 1. **Arquitectura por capas + SOLID.** `Controller` (HTTP) → `Service` (reglas de negocio) → `Repository` (datos). Cada capa depende de interfaces (`IUserService`, `ITaskRepository`, etc.) registradas con inyección de dependencias, cumpliendo el principio de inversión de dependencias.
 2. **DTOs separados de las entidades.** Los contratos de la API no exponen directamente el modelo de EF Core.
@@ -285,9 +318,9 @@ La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en
 
 ---
 
-## 8. Funcionalidades pendientes
+## 9. Funcionalidades pendientes
 
-- Pruebas automatizadas: unitarias de servicios/reglas de estado (xUnit) e integración con `WebApplicationFactory`; pruebas del frontend.
+- Ampliar la cobertura: pruebas de integración con `WebApplicationFactory`, pruebas de componentes/servicios del frontend y pruebas E2E.
 - Autenticación y autorización (JWT) y roles.
 - Paginación y búsqueda por texto en el listado de tareas.
 - Edición y eliminación de usuarios y tareas.
@@ -300,7 +333,7 @@ La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en
 
 ---
 
-## 9. Evidencia de pruebas realizadas
+## 10. Evidencia de pruebas realizadas
 
 | Caso | Resultado |
 |---|---|
@@ -316,10 +349,12 @@ La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en
 | Tarea inexistente | `404` |
 | Filtro por estado + orden por fecha | `200` |
 | Filtro por usuario | `200` |
+| Pruebas unitarias backend (xUnit) | `8/8` correctas |
+| Smoke tests frontend (Vitest) | `2/2` correctas |
 | `JSON_VALUE` / `OPENJSON` / `FOR JSON` / `ISJSON` | Ejecutados correctamente |
 
 ---
 
-## 10. Autor
+## 11. Autor
 
 **Ing. GAAE** — Prueba técnica Fullstack Semisenior.
