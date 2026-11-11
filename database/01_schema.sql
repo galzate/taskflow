@@ -37,6 +37,7 @@ GO
 /* ----------------------------------------------------------------------------
    10-11-2026 Construido por: Ing GAAE - Creates the Tasks table.
    - Id is the primary key.
+   - Title and Description are required.
    - AssignedUserId is a foreign key to Users (a task must have an owner).
    - Status is restricted to Pending, InProgress and Done.
    - Metadata stores a JSON document validated with ISJSON.
@@ -47,7 +48,7 @@ BEGIN
     (
         Id              INT             IDENTITY(1,1) NOT NULL,
         Title           NVARCHAR(200)   NOT NULL,
-        Description     NVARCHAR(1000)  NULL,
+        Description     NVARCHAR(1000)  NOT NULL,
         Status          VARCHAR(20)     NOT NULL
             CONSTRAINT DF_Tasks_Status DEFAULT 'Pending',
         AssignedUserId  INT             NOT NULL,

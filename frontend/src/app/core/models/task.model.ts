@@ -4,7 +4,7 @@ export type TaskStatus = 'Pending' | 'InProgress' | 'Done';
 export interface TaskItem {
   id: number;
   title: string;
-  description: string | null;
+  description: string;
   status: TaskStatus;
   assignedUserId: number;
   assignedUserName: string;
@@ -15,7 +15,7 @@ export interface TaskItem {
 
 export interface CreateTaskRequest {
   title: string;
-  description?: string | null;
+  description: string;
   assignedUserId: number;
   metadata?: Record<string, unknown> | null;
 }

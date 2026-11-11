@@ -21,7 +21,7 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 - Consultar un usuario por id.
 
 ### Tareas
-- Crear tareas (título obligatorio, usuario asignado obligatorio).
+- Crear tareas (título y descripción obligatorios, usuario asignado obligatorio).
 - Listar tareas con filtros por **usuario** y **estado**, ordenadas por **fecha de creación** (`asc` / `desc`).
 - Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done`.
 - Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
@@ -32,7 +32,7 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 - Desplegables propios que muestran las opciones justo debajo del control, con navegación por teclado.
 
 ### Reglas de negocio implementadas
-1. El **título** de la tarea es obligatorio.
+1. El **título** y la **descripción** de la tarea son obligatorios.
 2. Toda tarea debe tener un **usuario asignado existente**.
 3. **No se permite pasar directamente de `Pending` a `Done`** (HTTP 422).
 4. `Done` tampoco puede volver directamente a `Pending`; se debe reabrir pasando por `InProgress`.
@@ -288,12 +288,13 @@ cd backend
 dotnet test
 ```
 
-Cobertura actual (8 pruebas):
+Cobertura actual (9 pruebas):
 
 - `Pending → Done` directo lanza `BusinessRuleException`.
 - `Pending → InProgress` y `InProgress → Done` actualizan el estado.
 - Un valor numérico fuera del enum lanza `ValidationException`.
 - Una tarea inexistente lanza `NotFoundException`.
+- Crear una tarea sin descripción es inválido (validación del DTO).
 - Crear una tarea con un usuario inexistente lanza `NotFoundException`.
 - Unos metadatos que no son un objeto JSON lanzan `ValidationException`.
 - Crear una tarea válida inicia en estado `Pending`.
@@ -351,13 +352,13 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 | Crear tarea con metadata JSON | `201` |
 | `Pending → InProgress` | `200` |
 | `InProgress → Done` | `200` |
-| Tarea sin título | `400` |
+| Tarea sin título o sin descripción | `400` |
 | Usuario inexistente al asignar | `404` |
 | `Pending → Done` directo | `422` (regla de negocio) |
 | Tarea inexistente | `404` |
 | Filtro por estado + orden por fecha | `200` |
 | Filtro por usuario | `200` |
-| Pruebas unitarias backend (xUnit) | `8/8` correctas |
+| Pruebas unitarias backend (xUnit) | `9/9` correctas |
 | Smoke tests frontend (Vitest) | `2/2` correctas |
 | `JSON_VALUE` / `OPENJSON` / `FOR JSON` / `ISJSON` | Ejecutados correctamente |
 

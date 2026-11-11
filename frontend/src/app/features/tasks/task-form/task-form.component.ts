@@ -38,7 +38,7 @@ export class TaskFormComponent implements OnInit {
 
   readonly form = this.formBuilder.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
-    description: [''],
+    description: ['', [Validators.required, Validators.maxLength(1000)]],
     assignedUserId: [null as number | null, [Validators.required, Validators.min(1)]],
     priority: ['High'],
   });
@@ -74,7 +74,7 @@ export class TaskFormComponent implements OnInit {
     this.taskService
       .create({
         title: value.title ?? '',
-        description: value.description ? value.description : null,
+        description: value.description ?? '',
         assignedUserId: Number(value.assignedUserId),
         metadata: { priority: value.priority ?? 'High' },
       })

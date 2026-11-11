@@ -22,7 +22,8 @@ public class TaskConfiguration : IEntityTypeConfiguration<TaskItem>
             .IsRequired();
         builder.Property(task => task.Description)
             .HasColumnName("Description")
-            .HasMaxLength(1000);
+            .HasMaxLength(1000)
+            .IsRequired();
         builder.Property(task => task.Status)
             .HasColumnName("Status")
             .HasConversion<string>()

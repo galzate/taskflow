@@ -14,8 +14,8 @@ public class TaskItem
     /// <summary>Short title that describes the task. Required.</summary>
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>Optional detailed description of the task.</summary>
-    public string? Description { get; set; }
+    /// <summary>Detailed description of the task. Required.</summary>
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>Current lifecycle status of the task.</summary>
     public TaskItemStatus Status { get; set; } = TaskItemStatus.Pending;

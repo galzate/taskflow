@@ -14,8 +14,11 @@
   </div>
 
   <div class="field">
-    <label for="task-description">Descripción</label>
+    <label for="task-description">Descripción *</label>
     <textarea id="task-description" formControlName="description" rows="3" maxlength="1000"></textarea>
+    @if (form.controls.description.invalid && form.controls.description.touched) {
+      <p class="field-error">La descripción es obligatoria (máximo 1000 caracteres).</p>
+    }
   </div>
 
   <div class="field">

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DataAnnotations = System.ComponentModel.DataAnnotations;
 using TaskFlow.Api.DTOs.Tasks;
 using TaskFlow.Api.Entities;
 using TaskFlow.Api.Enums;
@@ -94,6 +95,26 @@ public class TaskServiceTests
     }
 
     [Fact]
+    public void CreateTaskRequest_WhenDescriptionIsMissing_IsInvalid()
+    {
+        var request = new CreateTaskRequest
+        {
+            Title = "Sample task",
+            AssignedUserId = ExistingUser.Id
+        };
+        var results = new List<DataAnnotations.ValidationResult>();
+
+        var isValid = DataAnnotations.Validator.TryValidateObject(
+            request,
+            new DataAnnotations.ValidationContext(request),
+            results,
+            validateAllProperties: true);
+
+        Assert.False(isValid);
+        Assert.Contains(results, result => result.ErrorMessage == "La descripción es obligatoria.");
+    }
+
+    [Fact]
     public async Task CreateAsync_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
         var service = new TaskService(new FakeTaskRepository(), new FakeUserRepository());
@@ -102,6 +123,7 @@ public class TaskServiceTests
             service.CreateAsync(new CreateTaskRequest
             {
                 Title = "Sample task",
+                Description = "Sample description",
                 AssignedUserId = 999
             }));
     }
@@ -116,6 +138,7 @@ public class TaskServiceTests
             service.CreateAsync(new CreateTaskRequest
             {
                 Title = "Sample task",
+                Description = "Sample description",
                 AssignedUserId = ExistingUser.Id,
                 Metadata = document.RootElement.Clone()
             }));
@@ -130,11 +153,13 @@ public class TaskServiceTests
         var created = await service.CreateAsync(new CreateTaskRequest
         {
             Title = "  Sample task  ",
+            Description = "  Sample description  ",
             AssignedUserId = ExistingUser.Id,
             Metadata = document.RootElement.Clone()
         });
 
         Assert.Equal("Sample task", created.Title);
+        Assert.Equal("Sample description", created.Description);
         Assert.Equal(TaskItemStatus.Pending, created.Status);
         Assert.Equal(ExistingUser.Name, created.AssignedUserName);
         Assert.NotNull(created.Metadata);

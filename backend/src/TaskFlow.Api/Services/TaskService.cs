@@ -60,7 +60,7 @@ public class TaskService : ITaskService
         var task = new TaskItem
         {
             Title = request.Title.Trim(),
-            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+            Description = request.Description.Trim(),
             Status = TaskItemStatus.Pending,
             AssignedUserId = request.AssignedUserId,
             Metadata = metadataJson,

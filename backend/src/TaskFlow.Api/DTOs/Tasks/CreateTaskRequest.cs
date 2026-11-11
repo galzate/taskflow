@@ -14,9 +14,10 @@ public class CreateTaskRequest
     [StringLength(200, MinimumLength = 1, ErrorMessage = "El título debe tener entre 1 y 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>Optional detailed description of the task.</summary>
+    /// <summary>Detailed description of the task. Required.</summary>
+    [Required(ErrorMessage = "La descripción es obligatoria.")]
     [StringLength(1000, ErrorMessage = "La descripción no debe superar los 1000 caracteres.")]
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>Identifier of the user the task is assigned to. Required.</summary>
     [Required(ErrorMessage = "El usuario asignado es obligatorio.")]
