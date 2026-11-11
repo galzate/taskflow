@@ -106,12 +106,14 @@ app_taskflow/
 ### 4.1 Base de datos (SQL Server 2022)
 
 ```bash
-# 1) Levantar el contenedor
-docker compose up -d
+# 1) Levantar el contenedor y esperar a que el healthcheck esté en verde
+docker compose up -d --wait
 
-# 2) Esperar a que SQL Server esté listo (healthcheck) y crear el esquema + seed
+# 2) Crear el esquema, los índices y los datos demo
 ./database/init-db.sh
 ```
+
+> `init-db.sh` reintenta la conexión hasta que SQL Server responde, así que también funciona si el contenedor tarda en arrancar (por ejemplo, con emulación Rosetta).
 
 Credenciales locales (definidas en `docker-compose.yml` y `appsettings.Development.json`):
 
@@ -253,11 +255,11 @@ SELECT t.Id, t.Title, t.Status, t.AssignedUserId, u.Name AS AssignedUserName,
        t.Metadata, t.CreatedAt, t.UpdatedAt
 FROM dbo.Tasks AS t
 INNER JOIN dbo.Users AS u ON u.Id = t.AssignedUserId
-WHERE t.AssignedUserId = @AssignedUserId
-  AND (@Status IS NULL OR t.Status = @Status)
+WHERE t.AssignedUserId = @assignedUserId
+  AND (@status IS NULL OR t.Status = @status)
 ORDER BY
-    CASE WHEN @SortDirection = 'ASC'  THEN t.CreatedAt END ASC,
-    CASE WHEN @SortDirection = 'DESC' THEN t.CreatedAt END DESC;
+    CASE WHEN @sortDirection = 'ASC'  THEN t.CreatedAt END ASC,
+    CASE WHEN @sortDirection = 'DESC' THEN t.CreatedAt END DESC;
 ```
 
 Cubre los tres requisitos: **tareas por usuario**, **filtro por estado** y **orden por fecha de creación**.
@@ -274,8 +276,6 @@ En `database/04_json_queries.sql` se demuestran las funciones nativas sobre `Tas
 | `FOR JSON PATH` | Devuelve el resultado como documento JSON |
 
 La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en la columna `Metadata`.
-
----
 
 ---
 

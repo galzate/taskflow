@@ -9,13 +9,13 @@ GO
 
 /* ----------------------------------------------------------------------------
    10-11-2026 Construido por: Ing GAAE - Parameterized query used by the API.
-   @AssignedUserId : user to filter by (required).
-   @Status         : optional status filter (NULL returns every status).
-   @SortDirection  : ASC or DESC ordering by CreatedAt.
+   @assignedUserId : user to filter by (required).
+   @status         : optional status filter (NULL returns every status).
+   @sortDirection  : ASC or DESC ordering by CreatedAt.
    ---------------------------------------------------------------------------- */
-DECLARE @AssignedUserId INT = 1;
-DECLARE @Status VARCHAR(20) = NULL;          -- NULL = all statuses
-DECLARE @SortDirection VARCHAR(4) = 'DESC';  -- ASC or DESC
+DECLARE @assignedUserId INT = 1;
+DECLARE @status VARCHAR(20) = NULL;          -- NULL = all statuses
+DECLARE @sortDirection VARCHAR(4) = 'DESC';  -- ASC or DESC
 
 SELECT
     t.Id,
@@ -30,18 +30,18 @@ SELECT
 FROM dbo.Tasks AS t
 INNER JOIN dbo.Users AS u
     ON u.Id = t.AssignedUserId
-WHERE t.AssignedUserId = @AssignedUserId
-  AND (@Status IS NULL OR t.Status = @Status)
+WHERE t.AssignedUserId = @assignedUserId
+  AND (@status IS NULL OR t.Status = @status)
 ORDER BY
-    CASE WHEN @SortDirection = 'ASC' THEN t.CreatedAt END ASC,
-    CASE WHEN @SortDirection = 'DESC' THEN t.CreatedAt END DESC;
+    CASE WHEN @sortDirection = 'ASC' THEN t.CreatedAt END ASC,
+    CASE WHEN @sortDirection = 'DESC' THEN t.CreatedAt END DESC;
 GO
 
 /* ----------------------------------------------------------------------------
    10-11-2026 Construido por: Ing GAAE - Equivalent query without a user
    filter, useful for the global task list.
    ---------------------------------------------------------------------------- */
-DECLARE @GlobalStatus VARCHAR(20) = 'Pending';
+DECLARE @globalStatus VARCHAR(20) = 'Pending';
 
 SELECT
     t.Id,
@@ -53,7 +53,7 @@ SELECT
 FROM dbo.Tasks AS t
 INNER JOIN dbo.Users AS u
     ON u.Id = t.AssignedUserId
-WHERE (@GlobalStatus IS NULL OR t.Status = @GlobalStatus)
+WHERE (@globalStatus IS NULL OR t.Status = @globalStatus)
 ORDER BY t.CreatedAt DESC;
 GO
 

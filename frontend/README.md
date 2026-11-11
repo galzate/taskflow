@@ -1,16 +1,12 @@
-# TaskFlow Web (Angular 22)
+# TaskFlow Web
 
-Frontend of the TaskFlow task management system.
+Cliente Angular 22 de TaskFlow.
 
-See the [root README](../README.md) for the full setup, architecture and technical decisions.
-
-## Quick start
+La documentación completa (requisitos, puesta en marcha, endpoints, base de datos y decisiones técnicas) está en el [README principal](../README.md).
 
 ```bash
 npm install
 npm start
 ```
 
-Application: <http://localhost:4200>
-
-The API base URL is configured in `src/app/core/config/api.config.ts`.
+Aplicación: <http://localhost:4200>
