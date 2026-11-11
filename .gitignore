@@ -1,0 +1,22 @@
+# 10-11-2026 Construido por: Ing GAAE - Files excluded from the repository.
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/.vs/
+*.user
+
+# Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Environment files
+.env
+.env.local
+*.local
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store

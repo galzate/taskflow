@@ -1,0 +1,325 @@
+# TaskFlow — Sistema interno de gestión de tareas
+
+Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear tareas, asignarlas a colaboradores y hacer seguimiento a su estado.
+
+| Capa | Tecnología |
+|---|---|
+| Backend | .NET 10 Web API (C#) · EF Core 10 · Scalar (OpenAPI) |
+| Frontend | Angular 22 (standalone components, signals, reactive forms) |
+| Base de datos | Microsoft SQL Server 2022 (contenedor Docker) |
+| Arquitectura | Controller → Service → Repository · DTOs · SOLID |
+
+---
+
+## 1. Funcionalidades
+
+### Usuarios
+- Crear usuarios (nombre + email único).
+- Listar usuarios.
+- Consultar un usuario por id.
+
+### Tareas
+- Crear tareas (título obligatorio, usuario asignado obligatorio).
+- Listar tareas con filtros por **usuario** y **estado**, ordenadas por **fecha de creación** (`asc` / `desc`).
+- Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done`.
+- Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
+
+### Reglas de negocio implementadas
+1. El **título** de la tarea es obligatorio.
+2. Toda tarea debe tener un **usuario asignado existente**.
+3. **No se permite pasar directamente de `Pending` a `Done`** (HTTP 422).
+4. `Done` tampoco puede volver directamente a `Pending`; se debe reabrir pasando por `InProgress`.
+5. Cambiar al mismo estado es idempotente (HTTP 200).
+
+Transiciones permitidas:
+
+```
+Pending ──► InProgress ──► Done
+   ▲             │            │
+   └─────────────┘            │
+                 ◄────────────┘
+```
+
+---
+
+## 2. Estructura del repositorio
+
+```
+app_taskflow/
+├── backend/
+│   └── src/TaskFlow.Api/
+│       ├── Controllers/     # Endpoints REST (Users, Tasks)
+│       ├── Services/        # Reglas de negocio + interfaces
+│       ├── Repositories/    # Acceso a datos con EF Core + interfaces
+│       ├── DTOs/            # Contratos de entrada/salida
+│       ├── Entities/        # User, TaskItem
+│       ├── Enums/           # TaskItemStatus
+│       ├── Data/            # DbContext + configuraciones EF Core
+│       ├── Exceptions/      # Excepciones de dominio
+│       ├── Middleware/      # Manejo global de errores (ProblemDetails)
+│       └── Program.cs       # Bootstrap, DI, CORS, OpenAPI/Scalar
+├── frontend/
+│   └── src/app/
+│       ├── core/            # modelos, servicios HTTP, configuración
+│       └── features/
+│           ├── users/       # formulario de usuarios
+│           └── tasks/       # formulario y lista de tareas
+├── database/
+│   ├── 01_schema.sql        # Tablas, PK, FK, CHECK constraints
+│   ├── 02_indexes.sql       # Índices
+│   ├── 03_queries.sql       # Consulta obligatoria (usuario + estado + orden)
+│   ├── 04_json_queries.sql  # JSON nativo de SQL Server
+│   ├── 05_seed.sql          # Datos demo
+│   └── init-db.sh           # Ejecuta 01 + 02 + 05 en el contenedor
+├── docker-compose.yml       # SQL Server 2022
+└── README.md
+```
+
+---
+
+## 3. Requisitos previos
+
+| Herramienta | Versión recomendada |
+|---|---|
+| Docker Desktop | 4.x con Compose v2 |
+| .NET SDK | 10.0 |
+| Node.js | 20+ (probado con 26) |
+| npm | 10+ (probado con 11) |
+
+> **macOS con Apple Silicon (M1–M4):** SQL Server no tiene build nativo para ARM64. La imagen oficial es `linux/amd64` y se ejecuta con **emulación Rosetta 2**. En Docker Desktop activa:
+> `Settings → General → “Use Rosetta for x86_64/amd64 emulation on Apple Silicon”`.
+> Con Rosetta el contenedor arranca en ~10–20 segundos.
+
+---
+
+## 4. Puesta en marcha
+
+### 4.1 Base de datos (SQL Server 2022)
+
+```bash
+# 1) Levantar el contenedor
+docker compose up -d
+
+# 2) Esperar a que SQL Server esté listo (healthcheck) y crear el esquema + seed
+./database/init-db.sh
+```
+
+Credenciales locales (definidas en `docker-compose.yml` y `appsettings.Development.json`):
+
+```
+Servidor : localhost,1433
+Usuario  : sa
+Password : TaskFlow@2026!
+Base     : TaskFlowDb
+```
+
+Alternativa manual para ejecutar los scripts:
+
+```bash
+docker exec -i taskflow-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'TaskFlow@2026!' -C -b -i /scripts/01_schema.sql
+# repetir con 02_indexes.sql y 05_seed.sql
+```
+
+### 4.2 Backend (.NET Web API)
+
+```bash
+cd backend/src/TaskFlow.Api
+dotnet restore
+dotnet run
+```
+
+- API: <http://localhost:5080>
+- Documentación interactiva (Scalar): <http://localhost:5080/scalar/v1>
+- OpenAPI JSON: <http://localhost:5080/openapi/v1.json>
+
+La cadena de conexión está en `appsettings.Development.json`. También puede sobreescribirse con la variable de entorno:
+
+```bash
+export ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=TaskFlowDb;User Id=sa;Password=TaskFlow@2026!;TrustServerCertificate=True;Encrypt=True;"
+```
+
+### 4.3 Frontend (Angular)
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Aplicación: <http://localhost:4200>
+
+La URL base de la API se configura en `frontend/src/app/core/config/api.config.ts`.
+
+---
+
+## 5. Endpoints de la API
+
+| Método | Ruta | Descripción | Códigos |
+|---|---|---|---|
+| `POST` | `/api/users` | Crea un usuario | `201`, `400`, `422` |
+| `GET` | `/api/users` | Lista usuarios | `200` |
+| `GET` | `/api/users/{id}` | Usuario por id | `200`, `404` |
+| `POST` | `/api/tasks` | Crea una tarea asignada | `201`, `400`, `404` |
+| `GET` | `/api/tasks` | Lista tareas (`userId`, `status`, `sort=asc\|desc`) | `200` |
+| `GET` | `/api/tasks/{id}` | Tarea por id | `200`, `404` |
+| `PUT` | `/api/tasks/{id}/status` | Cambia el estado | `200`, `400`, `404`, `422` |
+
+Ejemplos:
+
+```bash
+# Crear usuario
+curl -X POST http://localhost:5080/api/users \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Ana Torres","email":"ana.torres@company.com"}'
+
+# Crear tarea con metadata JSON
+curl -X POST http://localhost:5080/api/tasks \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Prepare report","assignedUserId":1,"metadata":{"priority":"High","tags":["finance"]}}'
+
+# Filtrar tareas por estado y ordenar por fecha ascendente
+curl "http://localhost:5080/api/tasks?status=Pending&sort=asc"
+
+# Cambiar estado (Pending -> InProgress)
+curl -X PUT http://localhost:5080/api/tasks/1/status \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"InProgress"}'
+```
+
+Los errores de negocio y validación se devuelven como **ProblemDetails** (`application/problem+json`):
+
+```json
+{
+  "title": "Business rule violation",
+  "status": 422,
+  "detail": "A task cannot move directly from Pending to Done. Move it to InProgress first.",
+  "instance": "/api/tasks/7/status"
+}
+```
+
+---
+
+## 6. Base de datos
+
+### 6.1 Modelo
+
+**Users**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| `Id` | `int identity` | **PK** `PK_Users` |
+| `Name` | `nvarchar(100)` | `NOT NULL` |
+| `Email` | `nvarchar(150)` | `NOT NULL`, **UNIQUE** `UQ_Users_Email` |
+| `CreatedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
+
+**Tasks**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| `Id` | `int identity` | **PK** `PK_Tasks` |
+| `Title` | `nvarchar(200)` | `NOT NULL` |
+| `Description` | `nvarchar(1000)` | `NULL` |
+| `Status` | `varchar(20)` | `NOT NULL`, `CHECK IN ('Pending','InProgress','Done')` |
+| `AssignedUserId` | `int` | `NOT NULL`, **FK** `FK_Tasks_Users → Users(Id)` |
+| `Metadata` | `nvarchar(max)` | `NULL`, `CHECK ISJSON(Metadata) = 1` |
+| `CreatedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
+| `UpdatedAt` | `datetime2(0)` | `NULL` |
+
+### 6.2 Índices
+
+| Índice | Tabla | Columnas |
+|---|---|---|
+| `PK_Users` / `PK_Tasks` | Users / Tasks | `Id` (clustered) |
+| `UQ_Users_Email` | Users | `Email` (unique) |
+| `IX_Tasks_AssignedUserId_Status_CreatedAt` | Tasks | `(AssignedUserId, Status, CreatedAt DESC)` + INCLUDE |
+| `IX_Tasks_Status_CreatedAt` | Tasks | `(Status, CreatedAt DESC)` + INCLUDE |
+
+### 6.3 Consulta obligatoria
+
+En `database/03_queries.sql`:
+
+```sql
+SELECT t.Id, t.Title, t.Status, t.AssignedUserId, u.Name AS AssignedUserName,
+       t.Metadata, t.CreatedAt, t.UpdatedAt
+FROM dbo.Tasks AS t
+INNER JOIN dbo.Users AS u ON u.Id = t.AssignedUserId
+WHERE t.AssignedUserId = @AssignedUserId
+  AND (@Status IS NULL OR t.Status = @Status)
+ORDER BY
+    CASE WHEN @SortDirection = 'ASC'  THEN t.CreatedAt END ASC,
+    CASE WHEN @SortDirection = 'DESC' THEN t.CreatedAt END DESC;
+```
+
+Cubre los tres requisitos: **tareas por usuario**, **filtro por estado** y **orden por fecha de creación**.
+
+### 6.4 JSON nativo de SQL Server
+
+En `database/04_json_queries.sql` se demuestran las funciones nativas sobre `Tasks.Metadata`:
+
+| Función | Uso |
+|---|---|
+| `ISJSON` | Valida que el contenido sea JSON (también con `CK_Tasks_Metadata_IsJson`) |
+| `JSON_VALUE` | Extrae valores escalares (`$.priority`, `$.dueDate`) |
+| `OPENJSON` | Convierte el arreglo `$.tags` en filas |
+| `FOR JSON PATH` | Devuelve el resultado como documento JSON |
+
+La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en la columna `Metadata`.
+
+---
+
+## 7. Decisiones técnicas
+
+1. **Arquitectura por capas + SOLID.** `Controller` (HTTP) → `Service` (reglas de negocio) → `Repository` (datos). Cada capa depende de interfaces (`IUserService`, `ITaskRepository`, etc.) registradas con inyección de dependencias, cumpliendo el principio de inversión de dependencias.
+2. **DTOs separados de las entidades.** Los contratos de la API no exponen directamente el modelo de EF Core.
+3. **Scripts SQL como fuente de verdad del esquema.** El entregable exige un script de creación, así que el esquema se crea con `database/01_schema.sql` y no con migraciones. EF Core se usa solo para consultas y escrituras.
+4. **Validación en dos niveles.** `DataAnnotations` en los DTOs (400 automático de `[ApiController]`) y reglas de negocio en los servicios (422 mediante `BusinessRuleException`).
+5. **Manejo global de errores.** Middleware que traduce excepciones de dominio a **ProblemDetails** con códigos 400 / 404 / 422 / 500.
+6. **Estado como string con CHECK.** Facilita la lectura en la base y en la API; el enum se serializa como texto (`JsonStringEnumConverter`) y EF Core lo mapea con `HasConversion<string>()`.
+7. **JSON en base de datos y en la API.** Columna `Metadata nvarchar(max)` validada con `ISJSON`, expuesta como `JsonElement` en los DTOs.
+8. **Frontend con Angular moderno.** Componentes standalone, `signals`, formularios reactivos, `HttpClient` con `provideHttpClient()` y manejo de errores basado en ProblemDetails.
+9. **CORS acotado** al origen de desarrollo de Angular (`http://localhost:4200`).
+10. **Documentación de API con Scalar** sobre el OpenAPI nativo de .NET 10.
+11. **Comentarios con el formato solicitado** en código y scripts: `dd-mm-YYYY Construido por: Ing GAAE - Descripción del cambio`.
+12. **SQL Server en Docker.** Reproducible en cualquier máquina; en Apple Silicon se ejecuta con emulación Rosetta (documentado arriba).
+
+---
+
+## 8. Funcionalidades pendientes
+
+- Pruebas automatizadas: unitarias de servicios/reglas de estado (xUnit) e integración con `WebApplicationFactory`; pruebas del frontend.
+- Autenticación y autorización (JWT) y roles.
+- Paginación y búsqueda por texto en el listado de tareas.
+- Edición y eliminación de usuarios y tareas.
+- Actualización de la metadata de una tarea existente.
+- Migraciones EF Core como alternativa a los scripts SQL.
+- Dockerfiles y `docker compose` completo para backend + frontend.
+- Pipeline de CI/CD y análisis estático.
+- Internacionalización (ES/EN) de la interfaz.
+- Mejoras de accesibilidad (ARIA, navegación por teclado) y modo oscuro.
+
+---
+
+## 9. Evidencia de pruebas realizadas
+
+| Caso | Resultado |
+|---|---|
+| Crear usuario | `201` |
+| Email duplicado | `422` |
+| Email inválido | `400` con detalle de validación |
+| Crear tarea con metadata JSON | `201` |
+| `Pending → InProgress` | `200` |
+| `InProgress → Done` | `200` |
+| Tarea sin título | `400` |
+| Usuario inexistente al asignar | `404` |
+| `Pending → Done` directo | `422` (regla de negocio) |
+| Tarea inexistente | `404` |
+| Filtro por estado + orden por fecha | `200` |
+| Filtro por usuario | `200` |
+| `JSON_VALUE` / `OPENJSON` / `FOR JSON` / `ISJSON` | Ejecutados correctamente |
+
+---
+
+## 10. Autor
+
+**Ing. GAAE** — Prueba técnica Fullstack Semisenior.

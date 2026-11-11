@@ -1,0 +1,99 @@
+<section class="card">
+  <header class="card-header">
+    <div>
+      <h2>Tasks</h2>
+      <p class="subtitle">
+        {{ counts().total }} task(s) — {{ counts().pending }} pending · {{ counts().inProgress }} in progress · {{ counts().done }} done
+      </p>
+    </div>
+    <button type="button" class="btn ghost" (click)="loadTasks()" [disabled]="loading()">
+      {{ loading() ? 'Loading...' : 'Refresh' }}
+    </button>
+  </header>
+
+  <div class="filters">
+    <label>
+      <span>Status</span>
+      <select [(ngModel)]="statusFilter" (ngModelChange)="loadTasks()">
+        <option value="">All</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>User</span>
+      <select [(ngModel)]="userFilter" (ngModelChange)="loadTasks()">
+        <option value="">All users</option>
+        @for (user of users(); track user.id) {
+          <option [ngValue]="user.id">{{ user.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>Sort by creation date</span>
+      <select [(ngModel)]="sortOrder" (ngModelChange)="loadTasks()">
+        <option value="desc">Newest first</option>
+        <option value="asc">Oldest first</option>
+      </select>
+    </label>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="alert error" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="alert success" role="status">{{ successMessage() }}</p>
+  }
+
+  @if (!loading() && tasks().length === 0) {
+    <p class="empty">No tasks match the current filters.</p>
+  }
+
+  <ul class="task-list">
+    @for (task of tasks(); track task.id) {
+      <li class="task-item">
+        <div class="task-main">
+          <div class="task-title-row">
+            <h3>{{ task.title }}</h3>
+            <span
+              class="badge"
+              [class.pending]="task.status === 'Pending'"
+              [class.in-progress]="task.status === 'InProgress'"
+              [class.done]="task.status === 'Done'">
+              {{ task.status }}
+            </span>
+          </div>
+
+          @if (task.description) {
+            <p class="task-description">{{ task.description }}</p>
+          }
+
+          <div class="task-meta">
+            <span>Assigned to <strong>{{ task.assignedUserName }}</strong></span>
+            <span>Created {{ task.createdAt | date: 'short' }}</span>
+            @if (priorityOf(task); as priority) {
+              <span>Priority <strong>{{ priority }}</strong></span>
+            }
+          </div>
+        </div>
+
+        <div class="task-actions" aria-label="Change task status">
+          @for (status of statuses; track status) {
+            <button
+              type="button"
+              class="btn small"
+              [class.active]="task.status === status"
+              [disabled]="isTransitionDisabled(task, status)"
+              [title]="transitionHint(task, status)"
+              (click)="changeStatus(task, status)">
+              {{ status }}
+            </button>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+</section>

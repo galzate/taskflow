@@ -1,0 +1,49 @@
+@TaskFlow.Api_HostAddress = http://localhost:5080
+@ContentType = application/json
+
+### List users
+GET {{TaskFlow.Api_HostAddress}}/api/users
+Accept: {{ContentType}}
+
+### Create user
+POST {{TaskFlow.Api_HostAddress}}/api/users
+Content-Type: {{ContentType}}
+
+{
+  "name": "Ana Torres",
+  "email": "ana.torres@company.com"
+}
+
+### List tasks (all)
+GET {{TaskFlow.Api_HostAddress}}/api/tasks
+Accept: {{ContentType}}
+
+### List tasks filtered by status and sorted ascending
+GET {{TaskFlow.Api_HostAddress}}/api/tasks?status=Pending&sort=asc
+Accept: {{ContentType}}
+
+### List tasks by user
+GET {{TaskFlow.Api_HostAddress}}/api/tasks?userId=1
+Accept: {{ContentType}}
+
+### Create task with JSON metadata
+POST {{TaskFlow.Api_HostAddress}}/api/tasks
+Content-Type: {{ContentType}}
+
+{
+  "title": "Prepare monthly report",
+  "description": "Consolidate KPIs for the board",
+  "assignedUserId": 1,
+  "metadata": {
+    "priority": "High",
+    "tags": ["reporting", "finance"]
+  }
+}
+
+### Change task status (Pending -> InProgress)
+PUT {{TaskFlow.Api_HostAddress}}/api/tasks/1/status
+Content-Type: {{ContentType}}
+
+{
+  "status": "InProgress"
+}
