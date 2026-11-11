@@ -48,16 +48,16 @@ Pending ──► InProgress ──► Done
 app_taskflow/
 ├── backend/
 │   ├── src/TaskFlow.Api/
-│       ├── Controllers/     # Endpoints REST (Users, Tasks)
-│       ├── Services/        # Reglas de negocio + interfaces
-│       ├── Repositories/    # Acceso a datos con EF Core + interfaces
-│       ├── DTOs/            # Contratos de entrada/salida
-│       ├── Entities/        # User, TaskItem
-│       ├── Enums/           # TaskItemStatus
-│       ├── Data/            # DbContext + configuraciones EF Core
-│       ├── Exceptions/      # Excepciones de dominio
-│       ├── Middleware/      # Manejo global de errores (ProblemDetails)
-│       └── Program.cs       # Bootstrap, DI, CORS, OpenAPI/Scalar
+│   │   ├── Controllers/     # Endpoints REST (Users, Tasks)
+│   │   ├── Services/        # Reglas de negocio + interfaces
+│   │   ├── Repositories/    # Acceso a datos con EF Core + interfaces
+│   │   ├── DTOs/            # Contratos de entrada/salida
+│   │   ├── Entities/        # User, TaskItem
+│   │   ├── Enums/           # TaskItemStatus
+│   │   ├── Data/            # DbContext + configuraciones EF Core
+│   │   ├── Exceptions/      # Excepciones de dominio
+│   │   ├── Middleware/      # Manejo global de errores (ProblemDetails)
+│   │   └── Program.cs       # Bootstrap, DI, CORS, OpenAPI/Scalar
 │   └── tests/TaskFlow.Api.Tests/  # Pruebas unitarias de reglas de negocio (xUnit)
 ├── frontend/
 │   └── src/app/
