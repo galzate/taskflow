@@ -1,14 +1,13 @@
 <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()">
   <header class="card-header">
     <div>
-      <h2>Nuevo usuario</h2>
-      <p class="subtitle">Registra un colaborador antes de asignar tareas.</p>
+      <h2>Nuevo Usuario</h2>
     </div>
   </header>
 
   <div class="field">
     <label for="user-name">Nombre *</label>
-    <input id="user-name" type="text" formControlName="name" maxlength="100" placeholder="p. ej. Ana Torres" />
+    <input id="user-name" type="text" formControlName="name" maxlength="100" />
     @if (form.controls.name.invalid && form.controls.name.touched) {
       <p class="field-error">El nombre es obligatorio (entre 2 y 100 caracteres).</p>
     }
@@ -16,7 +15,7 @@
 
   <div class="field">
     <label for="user-email">Correo electrónico *</label>
-    <input id="user-email" type="email" formControlName="email" maxlength="150" placeholder="p. ej. ana.torres@empresa.com" />
+    <input id="user-email" type="email" formControlName="email" maxlength="150" />
     @if (form.controls.email.invalid && form.controls.email.touched) {
       <p class="field-error">Se requiere un correo electrónico válido.</p>
     }
@@ -30,6 +29,6 @@
   }
 
   <button type="submit" class="btn primary" [disabled]="submitting()">
-    {{ submitting() ? 'Creando...' : 'Crear usuario' }}
+    {{ submitting() ? 'Creando...' : 'Crear Usuario' }}
   </button>
 </form>

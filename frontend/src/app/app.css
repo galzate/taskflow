@@ -43,14 +43,6 @@
   color: #c7d2fe;
 }
 
-.tech-tag {
-  font-size: 0.78rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid rgba(199, 210, 254, 0.4);
-  border-radius: 999px;
-  color: #e0e7ff;
-}
-
 .app-main {
   flex: 1;
   width: min(1240px, 100%);

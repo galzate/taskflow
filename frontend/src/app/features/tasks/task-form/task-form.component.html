@@ -1,14 +1,13 @@
 <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()">
   <header class="card-header">
     <div>
-      <h2>Nueva tarea</h2>
-      <p class="subtitle">Toda tarea debe estar asignada a un usuario existente.</p>
+      <h2>Nueva Tarea</h2>
     </div>
   </header>
 
   <div class="field">
     <label for="task-title">Título *</label>
-    <input id="task-title" type="text" formControlName="title" maxlength="200" placeholder="p. ej. Preparar informe mensual" />
+    <input id="task-title" type="text" formControlName="title" maxlength="200" />
     @if (form.controls.title.invalid && form.controls.title.touched) {
       <p class="field-error">El título es obligatorio (máximo 200 caracteres).</p>
     }
@@ -16,7 +15,7 @@
 
   <div class="field">
     <label for="task-description">Descripción</label>
-    <textarea id="task-description" formControlName="description" rows="3" maxlength="1000" placeholder="Detalles opcionales de la tarea"></textarea>
+    <textarea id="task-description" formControlName="description" rows="3" maxlength="1000"></textarea>
   </div>
 
   <div class="field">
@@ -36,7 +35,7 @@
   </div>
 
   <div class="field">
-    <label for="task-priority">Prioridad (se guarda como metadatos JSON)</label>
+    <label for="task-priority">Prioridad</label>
     <select id="task-priority" formControlName="priority">
       <option value="Low">Baja</option>
       <option value="Medium">Media</option>
@@ -52,6 +51,6 @@
   }
 
   <button type="submit" class="btn primary" [disabled]="submitting()">
-    {{ submitting() ? 'Creando...' : 'Crear tarea' }}
+    {{ submitting() ? 'Creando...' : 'Crear Tarea' }}
   </button>
 </form>
