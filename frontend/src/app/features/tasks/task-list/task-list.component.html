@@ -3,13 +3,13 @@
   <header class="card-header">
     <div>
       <h2>Tareas</h2>
-      <p class="subtitle">
-        {{ counts().total }} {{ counts().total === 1 ? 'Tarea' : 'Tareas' }} -
-        {{ counts().pending }} Pending -
-        {{ counts().inProgress }} In Progress -
-        {{ counts().done }} Done
-      </p>
     </div>
+    <p class="subtitle counter">
+      {{ counts().total }} {{ counts().total === 1 ? 'Tarea' : 'Tareas' }} -
+      {{ counts().pending }} Pending -
+      {{ counts().inProgress }} In Progress -
+      {{ counts().done }} Done
+    </p>
   </header>
 
   <div class="filters">
