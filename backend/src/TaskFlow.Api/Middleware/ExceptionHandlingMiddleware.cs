@@ -37,10 +37,10 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, title) = exception switch
         {
-            NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
-            BusinessRuleException => (StatusCodes.Status422UnprocessableEntity, "Business rule violation"),
-            ValidationException => (StatusCodes.Status400BadRequest, "Validation error"),
-            _ => (StatusCodes.Status500InternalServerError, "Internal server error")
+            NotFoundException => (StatusCodes.Status404NotFound, "Recurso no encontrado"),
+            BusinessRuleException => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida"),
+            ValidationException => (StatusCodes.Status400BadRequest, "Error de validación"),
+            _ => (StatusCodes.Status500InternalServerError, "Error interno del servidor")
         };
 
         if (statusCode == StatusCodes.Status500InternalServerError)
@@ -58,7 +58,7 @@ public class ExceptionHandlingMiddleware
             Status = statusCode,
             Title = title,
             Detail = statusCode == StatusCodes.Status500InternalServerError
-                ? "An unexpected error occurred. Please try again later."
+                ? "Ocurrió un error inesperado. Inténtalo de nuevo más tarde."
                 : exception.Message,
             Instance = context.Request.Path
         };

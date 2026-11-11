@@ -68,7 +68,7 @@ export class TaskFormComponent implements OnInit {
       })
       .subscribe({
         next: (task) => {
-          this.successMessage.set(`Task "${task.title}" created successfully.`);
+          this.successMessage.set(`Tarea "${task.title}" creada correctamente.`);
           this.form.reset({ title: '', description: '', assignedUserId: null, priority: 'Medium' });
           this.submitting.set(false);
           this.events.notifyTaskCreated();
@@ -82,6 +82,6 @@ export class TaskFormComponent implements OnInit {
 
   private extractErrorMessage(error: unknown): string {
     const httpError = error as { error?: { detail?: string; title?: string }; message?: string };
-    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Unexpected error.';
+    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Ocurrió un error inesperado.';
   }
 }

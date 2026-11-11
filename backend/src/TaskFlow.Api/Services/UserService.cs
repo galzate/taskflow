@@ -29,7 +29,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id, cancellationToken);
         if (user is null)
         {
-            throw new NotFoundException($"User with id {id} was not found.");
+            throw new NotFoundException($"No se encontró el usuario con id {id}.");
         }
 
         return MapToResponse(user);
@@ -42,7 +42,7 @@ public class UserService : IUserService
 
         if (await _userRepository.EmailExistsAsync(normalizedEmail, cancellationToken))
         {
-            throw new BusinessRuleException($"A user with email '{normalizedEmail}' already exists.");
+            throw new BusinessRuleException($"Ya existe un usuario con el correo electrónico '{normalizedEmail}'.");
         }
 
         var user = new User

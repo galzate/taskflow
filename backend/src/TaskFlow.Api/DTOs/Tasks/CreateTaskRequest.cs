@@ -10,17 +10,17 @@ namespace TaskFlow.Api.DTOs.Tasks;
 public class CreateTaskRequest
 {
     /// <summary>Short title that describes the task. Required.</summary>
-    [Required(ErrorMessage = "Title is required.")]
-    [StringLength(200, MinimumLength = 1, ErrorMessage = "Title must be between 1 and 200 characters.")]
+    [Required(ErrorMessage = "El título es obligatorio.")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "El título debe tener entre 1 y 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>Optional detailed description of the task.</summary>
-    [StringLength(1000, ErrorMessage = "Description must not exceed 1000 characters.")]
+    [StringLength(1000, ErrorMessage = "La descripción no debe superar los 1000 caracteres.")]
     public string? Description { get; set; }
 
     /// <summary>Identifier of the user the task is assigned to. Required.</summary>
-    [Required(ErrorMessage = "AssignedUserId is required.")]
-    [Range(1, int.MaxValue, ErrorMessage = "AssignedUserId must be a positive integer.")]
+    [Required(ErrorMessage = "El usuario asignado es obligatorio.")]
+    [Range(1, int.MaxValue, ErrorMessage = "El usuario asignado debe ser un identificador válido.")]
     public int AssignedUserId { get; set; }
 
     /// <summary>Optional JSON object with extra task attributes (priority, tags, due date, etc.).</summary>

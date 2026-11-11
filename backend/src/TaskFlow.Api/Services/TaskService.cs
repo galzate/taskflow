@@ -40,7 +40,7 @@ public class TaskService : ITaskService
         var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
         if (task is null)
         {
-            throw new NotFoundException($"Task with id {id} was not found.");
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
         }
 
         return MapToResponse(task);
@@ -52,7 +52,7 @@ public class TaskService : ITaskService
         var assignedUser = await _userRepository.GetByIdAsync(request.AssignedUserId, cancellationToken);
         if (assignedUser is null)
         {
-            throw new NotFoundException($"User with id {request.AssignedUserId} was not found.");
+            throw new NotFoundException($"No se encontró el usuario con id {request.AssignedUserId}.");
         }
 
         var metadataJson = NormalizeMetadata(request.Metadata);
@@ -80,13 +80,13 @@ public class TaskService : ITaskService
         // Defensive check: reject numeric values that are not part of the enum.
         if (!Enum.IsDefined(request.Status))
         {
-            throw new ValidationException($"Status '{request.Status}' is not valid.");
+            throw new ValidationException($"El estado '{request.Status}' no es válido.");
         }
 
         var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
         if (task is null)
         {
-            throw new NotFoundException($"Task with id {id} was not found.");
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
         }
 
         // Idempotent update: requesting the current status is a no-op.
@@ -99,14 +99,14 @@ public class TaskService : ITaskService
         if (task.Status == TaskItemStatus.Pending && request.Status == TaskItemStatus.Done)
         {
             throw new BusinessRuleException(
-                "A task cannot move directly from Pending to Done. Move it to InProgress first.");
+                "Una tarea no puede pasar directamente de Pendiente a Completada. Primero muévela a En progreso.");
         }
 
         // Business rule: a Done task must be reopened through InProgress.
         if (task.Status == TaskItemStatus.Done && request.Status == TaskItemStatus.Pending)
         {
             throw new BusinessRuleException(
-                "A Done task cannot move back to Pending. Move it to InProgress first.");
+                "Una tarea completada no puede volver a Pendiente. Primero muévela a En progreso.");
         }
 
         task.Status = request.Status;
@@ -128,7 +128,7 @@ public class TaskService : ITaskService
 
         if (metadata.Value.ValueKind != JsonValueKind.Object)
         {
-            throw new ValidationException("Metadata must be a JSON object.");
+            throw new ValidationException("Los metadatos deben ser un objeto JSON.");
         }
 
         return metadata.Value.GetRawText();

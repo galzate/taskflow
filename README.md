@@ -9,6 +9,8 @@ Prueba técnica **Fullstack Semisenior**: sistema para registrar usuarios, crear
 | Base de datos | Microsoft SQL Server 2022 (contenedor Docker) |
 | Arquitectura | Controller → Service → Repository · DTOs · SOLID |
 
+> **Idioma:** el código fuente, los identificadores y el modelo de datos están en inglés. La interfaz de usuario y los mensajes visibles están en español; los estados se muestran como **Pendiente**, **En progreso** y **Completada**, conservando `Pending`, `InProgress` y `Done` en la API y la base de datos.
+
 ---
 
 ## 1. Funcionalidades
@@ -192,9 +194,9 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 
 ```json
 {
-  "title": "Business rule violation",
+  "title": "Regla de negocio incumplida",
   "status": 422,
-  "detail": "A task cannot move directly from Pending to Done. Move it to InProgress first.",
+  "detail": "Una tarea no puede pasar directamente de Pendiente a Completada. Primero muévela a En progreso.",
   "instance": "/api/tasks/7/status"
 }
 ```
@@ -287,7 +289,7 @@ Cobertura actual (8 pruebas):
 - Un valor numérico fuera del enum lanza `ValidationException`.
 - Una tarea inexistente lanza `NotFoundException`.
 - Crear una tarea con un usuario inexistente lanza `NotFoundException`.
-- Una metadata que no es objeto JSON lanza `ValidationException`.
+- Unos metadatos que no son un objeto JSON lanzan `ValidationException`.
 - Crear una tarea válida inicia en estado `Pending`.
 
 ### Frontend (Vitest)
@@ -297,7 +299,7 @@ cd frontend
 npm test -- --watch=false
 ```
 
-Smoke tests del componente raíz: creación del componente y render del encabezado `TaskFlow`.
+Pruebas de humo del componente raíz: creación del componente y render del encabezado `TaskFlow`.
 
 ---
 

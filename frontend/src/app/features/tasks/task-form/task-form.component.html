@@ -1,46 +1,46 @@
 <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()">
   <header class="card-header">
     <div>
-      <h2>New task</h2>
-      <p class="subtitle">Every task must be assigned to an existing user.</p>
+      <h2>Nueva tarea</h2>
+      <p class="subtitle">Toda tarea debe estar asignada a un usuario existente.</p>
     </div>
   </header>
 
   <div class="field">
-    <label for="task-title">Title *</label>
-    <input id="task-title" type="text" formControlName="title" maxlength="200" placeholder="e.g. Prepare monthly report" />
+    <label for="task-title">Título *</label>
+    <input id="task-title" type="text" formControlName="title" maxlength="200" placeholder="p. ej. Preparar informe mensual" />
     @if (form.controls.title.invalid && form.controls.title.touched) {
-      <p class="field-error">Title is required (max 200 characters).</p>
+      <p class="field-error">El título es obligatorio (máximo 200 caracteres).</p>
     }
   </div>
 
   <div class="field">
-    <label for="task-description">Description</label>
-    <textarea id="task-description" formControlName="description" rows="3" maxlength="1000" placeholder="Optional details about the task"></textarea>
+    <label for="task-description">Descripción</label>
+    <textarea id="task-description" formControlName="description" rows="3" maxlength="1000" placeholder="Detalles opcionales de la tarea"></textarea>
   </div>
 
   <div class="field">
-    <label for="task-user">Assigned user *</label>
+    <label for="task-user">Usuario asignado *</label>
     <select id="task-user" formControlName="assignedUserId">
-      <option [ngValue]="null" disabled>Select a user</option>
+      <option [ngValue]="null" disabled>Selecciona un usuario</option>
       @for (user of users(); track user.id) {
         <option [ngValue]="user.id">{{ user.name }} ({{ user.email }})</option>
       }
     </select>
     @if (form.controls.assignedUserId.invalid && form.controls.assignedUserId.touched) {
-      <p class="field-error">You must select an assigned user.</p>
+      <p class="field-error">Debes seleccionar un usuario asignado.</p>
     }
     @if (users().length === 0) {
-      <p class="hint">There are no users yet. Create one first.</p>
+      <p class="hint">Aún no hay usuarios. Crea uno primero.</p>
     }
   </div>
 
   <div class="field">
-    <label for="task-priority">Priority (stored as JSON metadata)</label>
+    <label for="task-priority">Prioridad (se guarda como metadatos JSON)</label>
     <select id="task-priority" formControlName="priority">
-      <option value="Low">Low</option>
-      <option value="Medium">Medium</option>
-      <option value="High">High</option>
+      <option value="Low">Baja</option>
+      <option value="Medium">Media</option>
+      <option value="High">Alta</option>
     </select>
   </div>
 
@@ -52,6 +52,6 @@
   }
 
   <button type="submit" class="btn primary" [disabled]="submitting()">
-    {{ submitting() ? 'Creating...' : 'Create task' }}
+    {{ submitting() ? 'Creando...' : 'Crear tarea' }}
   </button>
 </form>

@@ -38,7 +38,7 @@ export class UserFormComponent {
 
     this.userService.create({ name: value.name ?? '', email: value.email ?? '' }).subscribe({
       next: (user) => {
-        this.successMessage.set(`User "${user.name}" created successfully.`);
+        this.successMessage.set(`Usuario "${user.name}" creado correctamente.`);
         this.form.reset({ name: '', email: '' });
         this.submitting.set(false);
         this.events.notifyUserCreated();
@@ -52,6 +52,6 @@ export class UserFormComponent {
 
   private extractErrorMessage(error: unknown): string {
     const httpError = error as { error?: { detail?: string; title?: string }; message?: string };
-    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Unexpected error.';
+    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Ocurrió un error inesperado.';
   }
 }

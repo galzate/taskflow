@@ -1,31 +1,34 @@
 <section class="card">
   <header class="card-header">
     <div>
-      <h2>Tasks</h2>
+      <h2>Tareas</h2>
       <p class="subtitle">
-        {{ counts().total }} task(s) — {{ counts().pending }} pending · {{ counts().inProgress }} in progress · {{ counts().done }} done
+        {{ counts().total }} {{ counts().total === 1 ? 'tarea' : 'tareas' }} —
+        {{ counts().pending }} {{ counts().pending === 1 ? 'pendiente' : 'pendientes' }} ·
+        {{ counts().inProgress }} en progreso ·
+        {{ counts().done }} {{ counts().done === 1 ? 'completada' : 'completadas' }}
       </p>
     </div>
     <button type="button" class="btn ghost" (click)="loadTasks()" [disabled]="loading()">
-      {{ loading() ? 'Loading...' : 'Refresh' }}
+      {{ loading() ? 'Cargando...' : 'Actualizar' }}
     </button>
   </header>
 
   <div class="filters">
     <label>
-      <span>Status</span>
+      <span>Estado</span>
       <select [(ngModel)]="statusFilter" (ngModelChange)="loadTasks()">
-        <option value="">All</option>
+        <option value="">Todos</option>
         @for (status of statuses; track status) {
-          <option [value]="status">{{ status }}</option>
+          <option [value]="status">{{ statusLabel(status) }}</option>
         }
       </select>
     </label>
 
     <label>
-      <span>User</span>
+      <span>Usuario</span>
       <select [(ngModel)]="userFilter" (ngModelChange)="loadTasks()">
-        <option value="">All users</option>
+        <option value="">Todos los usuarios</option>
         @for (user of users(); track user.id) {
           <option [ngValue]="user.id">{{ user.name }}</option>
         }
@@ -33,10 +36,10 @@
     </label>
 
     <label>
-      <span>Sort by creation date</span>
+      <span>Ordenar por fecha de creación</span>
       <select [(ngModel)]="sortOrder" (ngModelChange)="loadTasks()">
-        <option value="desc">Newest first</option>
-        <option value="asc">Oldest first</option>
+        <option value="desc">Más recientes primero</option>
+        <option value="asc">Más antiguas primero</option>
       </select>
     </label>
   </div>
@@ -49,7 +52,7 @@
   }
 
   @if (!loading() && tasks().length === 0) {
-    <p class="empty">No tasks match the current filters.</p>
+    <p class="empty">No hay tareas que coincidan con los filtros.</p>
   }
 
   <ul class="task-list">
@@ -63,7 +66,7 @@
               [class.pending]="task.status === 'Pending'"
               [class.in-progress]="task.status === 'InProgress'"
               [class.done]="task.status === 'Done'">
-              {{ task.status }}
+              {{ statusLabel(task.status) }}
             </span>
           </div>
 
@@ -72,15 +75,15 @@
           }
 
           <div class="task-meta">
-            <span>Assigned to <strong>{{ task.assignedUserName }}</strong></span>
-            <span>Created {{ task.createdAt | date: 'short' }}</span>
+            <span>Asignada a <strong>{{ task.assignedUserName }}</strong></span>
+            <span>Creada {{ task.createdAt | date: 'short' }}</span>
             @if (priorityOf(task); as priority) {
-              <span>Priority <strong>{{ priority }}</strong></span>
+              <span>Prioridad <strong>{{ priorityLabel(priority) }}</strong></span>
             }
           </div>
         </div>
 
-        <div class="task-actions" aria-label="Change task status">
+        <div class="task-actions" aria-label="Cambiar estado de la tarea">
           @for (status of statuses; track status) {
             <button
               type="button"
@@ -89,7 +92,7 @@
               [disabled]="isTransitionDisabled(task, status)"
               [title]="transitionHint(task, status)"
               (click)="changeStatus(task, status)">
-              {{ status }}
+              {{ statusLabel(status) }}
             </button>
           }
         </div>

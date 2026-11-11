@@ -9,13 +9,13 @@ namespace TaskFlow.Api.DTOs.Users;
 public class CreateUserRequest
 {
     /// <summary>Full name of the user.</summary>
-    [Required(ErrorMessage = "Name is required.")]
-    [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters.")]
+    [Required(ErrorMessage = "El nombre es obligatorio.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "El nombre debe tener entre 2 y 100 caracteres.")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Unique email address of the user.</summary>
-    [Required(ErrorMessage = "Email is required.")]
-    [EmailAddress(ErrorMessage = "Email format is invalid.")]
-    [StringLength(150, ErrorMessage = "Email must not exceed 150 characters.")]
+    [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
+    [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido.")]
+    [StringLength(150, ErrorMessage = "El correo electrónico no debe superar los 150 caracteres.")]
     public string Email { get; set; } = string.Empty;
 }

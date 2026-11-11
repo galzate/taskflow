@@ -16,6 +16,18 @@ import { UserService } from '../../../core/services/user.service';
   styleUrl: './task-list.component.css',
 })
 export class TaskListComponent implements OnInit {
+  private static readonly statusLabels: Record<TaskStatus, string> = {
+    Pending: 'Pendiente',
+    InProgress: 'En progreso',
+    Done: 'Completada',
+  };
+
+  private static readonly priorityLabels: Record<string, string> = {
+    Low: 'Baja',
+    Medium: 'Media',
+    High: 'Alta',
+  };
+
   private readonly taskService = inject(TaskService);
   private readonly userService = inject(UserService);
   private readonly events = inject(AppEventsService);
@@ -91,7 +103,9 @@ export class TaskListComponent implements OnInit {
         this.tasks.update((tasks) =>
           tasks.map((current) => (current.id === updatedTask.id ? updatedTask : current)),
         );
-        this.successMessage.set(`Task "${updatedTask.title}" moved to ${updatedTask.status}.`);
+        this.successMessage.set(
+          `Estado de la tarea "${updatedTask.title}" actualizado a "${this.statusLabel(updatedTask.status)}".`,
+        );
       },
       error: (error: unknown) => this.errorMessage.set(this.extractErrorMessage(error)),
     });
@@ -115,15 +129,19 @@ export class TaskListComponent implements OnInit {
 
   transitionHint(task: TaskItem, status: TaskStatus): string {
     if (task.status === status) {
-      return 'This is the current status.';
+      return 'Este es el estado actual.';
     }
     if (task.status === 'Pending' && status === 'Done') {
-      return 'Not allowed: move the task to InProgress first.';
+      return 'No permitido: primero mueve la tarea a En progreso.';
     }
     if (task.status === 'Done' && status === 'Pending') {
-      return 'Not allowed: reopen the task through InProgress.';
+      return 'No permitido: reabre la tarea pasando por En progreso.';
     }
-    return `Change status to ${status}.`;
+    return `Cambiar estado a ${this.statusLabel(status)}.`;
+  }
+
+  statusLabel(status: TaskStatus): string {
+    return TaskListComponent.statusLabels[status];
   }
 
   priorityOf(task: TaskItem): string | null {
@@ -131,8 +149,12 @@ export class TaskListComponent implements OnInit {
     return typeof priority === 'string' ? priority : null;
   }
 
+  priorityLabel(priority: string): string {
+    return TaskListComponent.priorityLabels[priority] ?? priority;
+  }
+
   private extractErrorMessage(error: unknown): string {
     const httpError = error as { error?: { detail?: string; title?: string }; message?: string };
-    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Unexpected error.';
+    return httpError?.error?.detail ?? httpError?.error?.title ?? httpError?.message ?? 'Ocurrió un error inesperado.';
   }
 }

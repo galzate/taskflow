@@ -33,7 +33,7 @@ public class TaskServiceTests
         var exception = await Assert.ThrowsAsync<BusinessRuleException>(() =>
             service.UpdateStatusAsync(task.Id, new UpdateTaskStatusRequest { Status = TaskItemStatus.Done }));
 
-        Assert.Contains("Pending to Done", exception.Message);
+        Assert.Contains("Pendiente a Completada", exception.Message);
     }
 
     [Fact]

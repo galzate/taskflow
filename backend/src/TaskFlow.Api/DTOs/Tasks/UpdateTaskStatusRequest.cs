@@ -10,7 +10,7 @@ namespace TaskFlow.Api.DTOs.Tasks;
 public class UpdateTaskStatusRequest
 {
     /// <summary>Target status: Pending, InProgress or Done.</summary>
-    [Required(ErrorMessage = "Status is required.")]
-    [EnumDataType(typeof(TaskItemStatus), ErrorMessage = "Status must be one of: Pending, InProgress, Done.")]
+    [Required(ErrorMessage = "El estado es obligatorio.")]
+    [EnumDataType(typeof(TaskItemStatus), ErrorMessage = "El estado debe ser uno de: Pending, InProgress, Done.")]
     public TaskItemStatus Status { get; set; }
 }

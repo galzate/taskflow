@@ -1,24 +1,24 @@
 <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()">
   <header class="card-header">
     <div>
-      <h2>New user</h2>
-      <p class="subtitle">Register a collaborator before assigning tasks.</p>
+      <h2>Nuevo usuario</h2>
+      <p class="subtitle">Registra un colaborador antes de asignar tareas.</p>
     </div>
   </header>
 
   <div class="field">
-    <label for="user-name">Name *</label>
-    <input id="user-name" type="text" formControlName="name" maxlength="100" placeholder="e.g. Ana Torres" />
+    <label for="user-name">Nombre *</label>
+    <input id="user-name" type="text" formControlName="name" maxlength="100" placeholder="p. ej. Ana Torres" />
     @if (form.controls.name.invalid && form.controls.name.touched) {
-      <p class="field-error">Name is required (2 to 100 characters).</p>
+      <p class="field-error">El nombre es obligatorio (entre 2 y 100 caracteres).</p>
     }
   </div>
 
   <div class="field">
-    <label for="user-email">Email *</label>
-    <input id="user-email" type="email" formControlName="email" maxlength="150" placeholder="e.g. ana.torres@company.com" />
+    <label for="user-email">Correo electrónico *</label>
+    <input id="user-email" type="email" formControlName="email" maxlength="150" placeholder="p. ej. ana.torres@empresa.com" />
     @if (form.controls.email.invalid && form.controls.email.touched) {
-      <p class="field-error">A valid email is required.</p>
+      <p class="field-error">Se requiere un correo electrónico válido.</p>
     }
   </div>
 
@@ -30,6 +30,6 @@
   }
 
   <button type="submit" class="btn primary" [disabled]="submitting()">
-    {{ submitting() ? 'Creating...' : 'Create user' }}
+    {{ submitting() ? 'Creando...' : 'Crear usuario' }}
   </button>
 </form>
