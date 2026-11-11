@@ -1,0 +1,86 @@
+%% ============================================================================
+%% TaskFlow - Arquitectura y separación de responsabilidades
+%% 10-11-2026 Construido por: Ing GAAE
+%%
+%% Regla de dependencias: las flechas apuntan hacia la infraestructura
+%% (Presentación -> Aplicación -> Infraestructura). Ninguna capa salta a otra.
+%% El dominio (Entities, Enums, Exceptions) no depende de controllers ni de EF Core.
+%% El frontend solo conoce la API por HTTP/JSON; nunca accede a la base de datos.
+%% ============================================================================
+
+flowchart TB
+    subgraph FRONTEND["FRONTEND · Angular 22 (SPA)"]
+        direction TB
+        subgraph FE_PRES["Presentación"]
+            Components["Componentes standalone<br/>UserForm · TaskForm · TaskList"]
+            SharedUI["UI compartida<br/>app-select · app-alert"]
+        end
+        subgraph FE_APP["Aplicación"]
+            HttpServices["Servicios HTTP<br/>UserService · TaskService"]
+            Events["AppEventsService<br/>eventos entre componentes"]
+        end
+        subgraph FE_CONTRACTS["Contratos"]
+            Models["Modelos TypeScript<br/>User · TaskItem · requests"]
+        end
+        Components --> SharedUI
+        Components --> HttpServices
+        Components --> Events
+        HttpServices --> Models
+    end
+
+    subgraph BACKEND["BACKEND · .NET 10 Web API"]
+        direction TB
+        subgraph BE_PRES["Presentación (HTTP)"]
+            Middleware["ExceptionHandlingMiddleware<br/>ProblemDetails 400/404/422/500"]
+            Controllers["Controllers<br/>UsersController · TasksController"]
+            DTOs["DTOs<br/>requests · responses"]
+        end
+        subgraph BE_APP["Aplicación (reglas de negocio)"]
+            Services["Services<br/>UserService · TaskService"]
+        end
+        subgraph BE_DOMAIN["Dominio"]
+            Entities["Entities<br/>User · TaskItem"]
+            Enums["Enums<br/>TaskItemStatus"]
+            Exceptions["Exceptions<br/>NotFoundException · ValidationException<br/>BusinessRuleException"]
+        end
+        subgraph BE_INFRA["Infraestructura (persistencia)"]
+            Repositories["Repositories<br/>IUserRepository · ITaskRepository"]
+            DbContext["TaskFlowDbContext<br/>configuraciones EF Core"]
+        end
+        Program["Program.cs<br/>DI · CORS · JSON · OpenAPI"]
+
+        Middleware --> Controllers
+        Controllers --> DTOs
+        Controllers --> Services
+        Services --> DTOs
+        Services --> Entities
+        Services --> Exceptions
+        Services --> Repositories
+        Repositories --> Entities
+        Repositories --> DbContext
+        DbContext --> Entities
+        Program -.-> Controllers
+        Program -.-> Services
+        Program -.-> Repositories
+    end
+
+    subgraph DATABASE["BASE DE DATOS · SQL Server 2022"]
+        direction TB
+        Tables["Tablas<br/>dbo.Users · dbo.Tasks"]
+        Integrity["Integridad<br/>PK · FK · UNIQUE · CHECK"]
+        Indexes["Índices<br/>IX_Tasks_AssignedUserId_Status_CreatedAt<br/>IX_Tasks_Status_CreatedAt"]
+        NativeJson["JSON nativo<br/>ISJSON · JSON_VALUE · OPENJSON · FOR JSON"]
+        Tables --> Integrity
+        Tables --> Indexes
+        Tables --> NativeJson
+    end
+
+    HttpServices -->|"HTTP/JSON · /api"| Middleware
+    DbContext -->|"EF Core"| Tables
+
+    classDef frontend fill:#e8f1ff,stroke:#2f6feb,color:#0b2a5b;
+    classDef backend fill:#eaf7ee,stroke:#2da44e,color:#0b3d1e;
+    classDef database fill:#fff4e5,stroke:#d97706,color:#5a3300;
+    class Components,SharedUI,HttpServices,Events,Models frontend;
+    class Middleware,Controllers,DTOs,Services,Entities,Enums,Exceptions,Repositories,DbContext,Program backend;
+    class Tables,Integrity,Indexes,NativeJson database;

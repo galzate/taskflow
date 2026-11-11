@@ -66,7 +66,124 @@ Versiones probadas: .NET SDK 10.0.404 · Angular CLI 22.2.6 · Node.js 26 · npm
 
 ---
 
-## 3. Funcionalidades
+## 3. Arquitectura y separación de responsabilidades
+
+El sistema aplica una arquitectura por capas con dependencias unidireccionales:
+
+```
+Frontend (Angular) → Controllers → Services → Repositories → SQL Server
+```
+
+Cada capa tiene una única responsabilidad y se comunica mediante interfaces y DTOs:
+
+| Capa | Responsabilidad | Límite |
+|---|---|---|
+| Frontend — Presentación | Formularios, listado, filtros, mensajes y navegación | No contiene reglas de negocio ni SQL |
+| Frontend — Servicios HTTP | Consumir la API y traducir errores ProblemDetails | No conoce EF Core ni la base de datos |
+| Controllers | Recibir HTTP, validar el contrato y delegar | No contiene reglas de negocio ni acceso a datos |
+| Services | Reglas de negocio, transiciones de estado y validaciones | No conoce HTTP ni escribe SQL |
+| Repositories | Consultas y persistencia con EF Core | No decide reglas de negocio |
+| Entities / Enums / Exceptions | Modelo y errores de dominio | No dependen de controllers ni de EF Core |
+| Data (DbContext) | Mapeo del modelo y configuración de EF Core | No expone HTTP |
+| Middleware | Traducir excepciones a ProblemDetails | No contiene lógica de negocio |
+| SQL Server | Integridad, índices y JSON nativo | No contiene reglas de aplicación |
+
+El diagrama completo está en [`docs/architecture.mmd`](docs/architecture.mmd) y se renderiza aquí:
+
+```mermaid
+%% ============================================================================
+%% TaskFlow - Arquitectura y separación de responsabilidades
+%% 10-11-2026 Construido por: Ing GAAE
+%%
+%% Regla de dependencias: las flechas apuntan hacia la infraestructura
+%% (Presentación -> Aplicación -> Infraestructura). Ninguna capa salta a otra.
+%% El dominio (Entities, Enums, Exceptions) no depende de controllers ni de EF Core.
+%% El frontend solo conoce la API por HTTP/JSON; nunca accede a la base de datos.
+%% ============================================================================
+
+flowchart TB
+    subgraph FRONTEND["FRONTEND · Angular 22 (SPA)"]
+        direction TB
+        subgraph FE_PRES["Presentación"]
+            Components["Componentes standalone<br/>UserForm · TaskForm · TaskList"]
+            SharedUI["UI compartida<br/>app-select · app-alert"]
+        end
+        subgraph FE_APP["Aplicación"]
+            HttpServices["Servicios HTTP<br/>UserService · TaskService"]
+            Events["AppEventsService<br/>eventos entre componentes"]
+        end
+        subgraph FE_CONTRACTS["Contratos"]
+            Models["Modelos TypeScript<br/>User · TaskItem · requests"]
+        end
+        Components --> SharedUI
+        Components --> HttpServices
+        Components --> Events
+        HttpServices --> Models
+    end
+
+    subgraph BACKEND["BACKEND · .NET 10 Web API"]
+        direction TB
+        subgraph BE_PRES["Presentación (HTTP)"]
+            Middleware["ExceptionHandlingMiddleware<br/>ProblemDetails 400/404/422/500"]
+            Controllers["Controllers<br/>UsersController · TasksController"]
+            DTOs["DTOs<br/>requests · responses"]
+        end
+        subgraph BE_APP["Aplicación (reglas de negocio)"]
+            Services["Services<br/>UserService · TaskService"]
+        end
+        subgraph BE_DOMAIN["Dominio"]
+            Entities["Entities<br/>User · TaskItem"]
+            Enums["Enums<br/>TaskItemStatus"]
+            Exceptions["Exceptions<br/>NotFoundException · ValidationException<br/>BusinessRuleException"]
+        end
+        subgraph BE_INFRA["Infraestructura (persistencia)"]
+            Repositories["Repositories<br/>IUserRepository · ITaskRepository"]
+            DbContext["TaskFlowDbContext<br/>configuraciones EF Core"]
+        end
+        Program["Program.cs<br/>DI · CORS · JSON · OpenAPI"]
+
+        Middleware --> Controllers
+        Controllers --> DTOs
+        Controllers --> Services
+        Services --> DTOs
+        Services --> Entities
+        Services --> Exceptions
+        Services --> Repositories
+        Repositories --> Entities
+        Repositories --> DbContext
+        DbContext --> Entities
+        Program -.-> Controllers
+        Program -.-> Services
+        Program -.-> Repositories
+    end
+
+    subgraph DATABASE["BASE DE DATOS · SQL Server 2022"]
+        direction TB
+        Tables["Tablas<br/>dbo.Users · dbo.Tasks"]
+        Integrity["Integridad<br/>PK · FK · UNIQUE · CHECK"]
+        Indexes["Índices<br/>IX_Tasks_AssignedUserId_Status_CreatedAt<br/>IX_Tasks_Status_CreatedAt"]
+        NativeJson["JSON nativo<br/>ISJSON · JSON_VALUE · OPENJSON · FOR JSON"]
+        Tables --> Integrity
+        Tables --> Indexes
+        Tables --> NativeJson
+    end
+
+    HttpServices -->|"HTTP/JSON · /api"| Middleware
+    DbContext -->|"EF Core"| Tables
+
+    classDef frontend fill:#e8f1ff,stroke:#2f6feb,color:#0b2a5b;
+    classDef backend fill:#eaf7ee,stroke:#2da44e,color:#0b3d1e;
+    classDef database fill:#fff4e5,stroke:#d97706,color:#5a3300;
+    class Components,SharedUI,HttpServices,Events,Models frontend;
+    class Middleware,Controllers,DTOs,Services,Entities,Enums,Exceptions,Repositories,DbContext,Program backend;
+    class Tables,Integrity,Indexes,NativeJson database;
+```
+
+> **Regla de dependencias:** las flechas apuntan siempre hacia la infraestructura (Controller → Service → Repository). Ninguna capa salta a otra ni accede directamente a la base de datos.
+
+---
+
+## 4. Funcionalidades
 
 ### Usuarios
 
@@ -91,7 +208,7 @@ Versiones probadas: .NET SDK 10.0.404 · Angular CLI 22.2.6 · Node.js 26 · npm
 
 ---
 
-## 4. Estructura del repositorio
+## 5. Estructura del repositorio
 
 ```
 app_taskflow/
@@ -125,6 +242,8 @@ app_taskflow/
 │   ├── 04_json_queries.sql  # JSON nativo de SQL Server
 │   ├── 05_seed.sql          # Datos demo
 │   └── init-db.sh           # Ejecuta 01 + 02 + 05 en el contenedor
+├── docs/
+│   └── architecture.mmd     # Diagrama de arquitectura y responsabilidades
 ├── docker-compose.yml       # SQL Server 2022
 ├── .gitignore
 └── README.md
@@ -132,7 +251,7 @@ app_taskflow/
 
 ---
 
-## 5. Requisitos previos
+## 6. Requisitos previos
 
 | Herramienta | Versión recomendada |
 |---|---|
@@ -147,9 +266,9 @@ app_taskflow/
 
 ---
 
-## 6. Puesta en marcha
+## 7. Puesta en marcha
 
-### 6.1 Base de datos (SQL Server 2022)
+### 7.1 Base de datos (SQL Server 2022)
 
 ```bash
 # 1) Levantar el contenedor y esperar a que el healthcheck esté en verde
@@ -179,7 +298,7 @@ Password : TaskFlow@2026!
 Base     : TaskFlowDb
 ```
 
-### 6.2 Backend (.NET Web API)
+### 7.2 Backend (.NET Web API)
 
 ```bash
 cd backend/src/TaskFlow.Api
@@ -197,7 +316,7 @@ La cadena de conexión está en `appsettings.Development.json`. También puede s
 export ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=TaskFlowDb;User Id=sa;Password=TaskFlow@2026!;TrustServerCertificate=True;Encrypt=True;"
 ```
 
-### 6.3 Frontend (Angular)
+### 7.3 Frontend (Angular)
 
 ```bash
 cd frontend
@@ -209,13 +328,13 @@ Aplicación: <http://localhost:4200>
 
 La URL base de la API se configura en `frontend/src/app/core/config/api.config.ts`.
 
-### 6.4 Orden recomendado
+### 7.4 Orden recomendado
 
 1. Base de datos → 2. Backend → 3. Frontend. Con los tres servicios activos, abre <http://localhost:4200>, crea un usuario y luego una tarea asignada a ese usuario.
 
 ---
 
-## 7. Endpoints de la API
+## 8. Endpoints de la API
 
 | Método | Ruta | Descripción | Códigos |
 |---|---|---|---|
@@ -262,9 +381,9 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 
 ---
 
-## 8. Base de datos
+## 9. Base de datos
 
-### 8.1 Modelo
+### 9.1 Modelo
 
 **Users**
 
@@ -288,7 +407,7 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 | `CreatedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
 | `UpdatedAt` | `datetime2(0)` | `NULL` |
 
-### 8.2 Índices
+### 9.2 Índices
 
 | Índice | Tabla | Columnas |
 |---|---|---|
@@ -297,7 +416,7 @@ Los errores de negocio y validación se devuelven como **ProblemDetails** (`appl
 | `IX_Tasks_AssignedUserId_Status_CreatedAt` | Tasks | `(AssignedUserId, Status, CreatedAt DESC)` + INCLUDE |
 | `IX_Tasks_Status_CreatedAt` | Tasks | `(Status, CreatedAt DESC)` + INCLUDE |
 
-### 8.3 Consulta obligatoria
+### 9.3 Consulta obligatoria
 
 En `database/03_queries.sql`:
 
@@ -315,7 +434,7 @@ ORDER BY
 
 Cubre los tres requisitos: **tareas por usuario**, **filtro por estado** y **orden por fecha de creación**.
 
-### 8.4 JSON nativo de SQL Server
+### 9.4 JSON nativo de SQL Server
 
 En `database/04_json_queries.sql` se demuestran las funciones nativas sobre `Tasks.Metadata`:
 
@@ -330,7 +449,7 @@ La API acepta y devuelve la metadata como objeto JSON, y la almacena validada en
 
 ---
 
-## 9. Pruebas automatizadas
+## 10. Pruebas automatizadas
 
 ### Backend (xUnit)
 
@@ -361,7 +480,7 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 
 ---
 
-## 10. Decisiones técnicas
+## 11. Decisiones técnicas
 
 1. **Arquitectura por capas + SOLID.** `Controller` (HTTP) → `Service` (reglas de negocio) → `Repository` (datos). Cada capa depende de interfaces (`IUserService`, `ITaskRepository`, etc.) registradas con inyección de dependencias, cumpliendo el principio de inversión de dependencias.
 2. **DTOs separados de las entidades.** Los contratos de la API no exponen directamente el modelo de EF Core.
@@ -378,7 +497,7 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 
 ---
 
-## 11. Funcionalidades pendientes
+## 12. Funcionalidades pendientes
 
 - Ampliar la cobertura: pruebas de integración con `WebApplicationFactory`, pruebas de componentes/servicios del frontend y pruebas E2E.
 - Autenticación y autorización (JWT) y roles.
@@ -394,7 +513,7 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 
 ---
 
-## 12. Evidencia de pruebas realizadas
+## 13. Evidencia de pruebas realizadas
 
 | Caso | Resultado |
 |---|---|
@@ -416,7 +535,7 @@ Pruebas de humo del componente raíz: creación del componente y render del enca
 
 ---
 
-## 13. Publicación del repositorio
+## 14. Publicación del repositorio
 
 El proyecto está publicado como repositorio **público** en GitHub:
 
@@ -452,7 +571,7 @@ git push -u origin main
 
 ---
 
-## 14. Autor
+## 15. Autor
 
 **Ing. GAAE** — desarrollo completo del sistema (backend, frontend, base de datos, pruebas y documentación).
 
