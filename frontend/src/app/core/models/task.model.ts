@@ -22,4 +22,13 @@ export interface CreateTaskRequest {
 
 export interface UpdateTaskStatusRequest {
   status: TaskStatus;
+  observation?: string;
+}
+
+export interface TaskStatusHistory {
+  id: number;
+  fromStatus: TaskStatus;
+  toStatus: TaskStatus;
+  observation: string | null;
+  changedAt: string;
 }

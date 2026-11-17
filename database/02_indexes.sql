@@ -46,3 +46,19 @@ GO
 -- already creates a unique index on Users(Email); it is documented here for
 -- completeness of the indexing strategy.
 -- ----------------------------------------------------------------------------
+
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Index for the task status bitacora.
+-- ============================================================================
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_TaskStatusHistory_TaskId_ChangedAt'
+      AND object_id = OBJECT_ID(N'dbo.TaskStatusHistory')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_TaskStatusHistory_TaskId_ChangedAt
+        ON dbo.TaskStatusHistory (TaskId, ChangedAt DESC);
+END;
+GO

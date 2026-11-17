@@ -1,8 +1,10 @@
+// 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop status transitions and bitacora.
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { TaskItem, TaskStatus } from '../../../core/models/task.model';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { TaskItem, TaskStatus, TaskStatusHistory, UpdateTaskStatusRequest } from '../../../core/models/task.model';
 import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
@@ -11,20 +13,13 @@ import { extractErrorMessage } from '../../../core/utils/error-message';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 
-// 10-11-2026 Construido por: Ing GAAE - Task list with status/user filters and status transitions.
 @Component({
   selector: 'app-task-list',
-  imports: [FormsModule, DatePipe, SelectComponent, AlertComponent],
+  imports: [FormsModule, DatePipe, CdkDropList, CdkDrag, CdkDragHandle, SelectComponent, AlertComponent],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
 })
 export class TaskListComponent implements OnInit {
-  private static readonly statusLabels: Record<TaskStatus, string> = {
-    Pending: 'Pending',
-    InProgress: 'In Progress',
-    Done: 'Done',
-  };
-
   private static readonly priorityLabels: Record<string, string> = {
     Low: 'Baja',
     Medium: 'Media',
@@ -41,41 +36,40 @@ export class TaskListComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
+  readonly userFilter = signal<string>('');
+  readonly sortOrder = signal<'asc' | 'desc'>('desc');
+
+  readonly observationModal = signal<{ task: TaskItem; targetStatus: TaskStatus } | null>(null);
+  readonly observationText = signal('');
+
+  readonly historyModal = signal<{ task: TaskItem; entries: TaskStatusHistory[]; loading: boolean } | null>(null);
+
+  readonly pendingTasks = computed(() => this.tasks().filter((t) => t.status === 'Pending'));
+  readonly inProgressTasks = computed(() => this.tasks().filter((t) => t.status === 'InProgress'));
+  readonly doneTasks = computed(() => this.tasks().filter((t) => t.status === 'Done'));
+
   readonly counts = computed(() => {
     const tasks = this.tasks();
     return {
       total: tasks.length,
-      pending: tasks.filter((task) => task.status === 'Pending').length,
-      inProgress: tasks.filter((task) => task.status === 'InProgress').length,
-      done: tasks.filter((task) => task.status === 'Done').length,
+      pending: tasks.filter((t) => t.status === 'Pending').length,
+      inProgress: tasks.filter((t) => t.status === 'InProgress').length,
+      done: tasks.filter((t) => t.status === 'Done').length,
     };
   });
 
-  readonly statuses: TaskStatus[] = ['Pending', 'InProgress', 'Done'];
-
-  readonly statusOptions = computed<SelectOption[]>(() => [
-    { value: '', label: 'Todos' },
-    ...this.statuses.map((status) => ({ value: status, label: this.statusLabel(status) })),
-  ]);
-
   readonly userOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Todos los usuarios' },
-    ...this.users().map((user) => ({ value: user.id, label: user.name })),
+    ...this.users().map((user) => ({ value: String(user.id), label: user.name })),
   ]);
 
   readonly sortOptions: SelectOption[] = [
     { value: 'desc', label: 'Más recientes primero' },
-    { value: 'asc', label: 'Más antiguas primero' },
+    { value: 'asc', label: 'Más antiguos primero' },
   ];
 
-  statusFilter: TaskStatus | '' = '';
-  userFilter: number | '' = '';
-  sortOrder: 'asc' | 'desc' = 'desc';
-
   constructor() {
-    // Refresh the list when a task or a user is created in the sibling forms.
     this.events.taskCreated$.pipe(takeUntilDestroyed()).subscribe(() => this.loadTasks());
-    this.events.userCreated$.pipe(takeUntilDestroyed()).subscribe(() => this.loadUsers());
   }
 
   ngOnInit(): void {
@@ -96,9 +90,9 @@ export class TaskListComponent implements OnInit {
 
     this.taskService
       .getAll({
-        userId: this.userFilter === '' ? null : Number(this.userFilter),
-        status: this.statusFilter === '' ? null : this.statusFilter,
-        sort: this.sortOrder,
+        userId: this.userFilter() === '' ? null : Number(this.userFilter()),
+        status: null,
+        sort: this.sortOrder(),
       })
       .subscribe({
         next: (tasks) => {
@@ -112,65 +106,76 @@ export class TaskListComponent implements OnInit {
       });
   }
 
-  changeStatus(task: TaskItem, status: TaskStatus): void {
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
+  onDrop(event: CdkDragDrop<TaskItem[]>, targetStatus: TaskStatus): void {
+    const task = event.item.data as TaskItem;
+    if (!task || task.status === targetStatus) {
+      return;
+    }
 
-    // Client-side validation: a task cannot jump directly from Pending to Done.
-    if (task.status === 'Pending' && status === 'Done') {
+    if (task.status === 'Pending' && targetStatus === 'Done') {
       this.errorMessage.set('No se permite cambiar una tarea directamente de Pending a Done.');
       return;
     }
 
-    this.taskService.updateStatus(task.id, status).subscribe({
+    this.observationText.set('');
+    this.observationModal.set({ task, targetStatus });
+  }
+
+  confirmStatusChange(): void {
+    const modal = this.observationModal();
+    if (!modal) return;
+
+    const request: UpdateTaskStatusRequest = {
+      status: modal.targetStatus,
+      observation: this.observationText().trim() || undefined,
+    };
+
+    this.observationModal.set(null);
+
+    this.taskService.updateStatus(modal.task.id, request).subscribe({
       next: (updatedTask) => {
         this.tasks.update((tasks) =>
           tasks.map((current) => (current.id === updatedTask.id ? updatedTask : current)),
         );
         this.successMessage.set(
-          `Estado de la tarea "${updatedTask.title}" actualizado a "${this.statusLabel(updatedTask.status)}".`,
+          `Estado de la tarea "${updatedTask.title}" actualizado a "${updatedTask.status}".`,
         );
       },
       error: (error: unknown) => this.errorMessage.set(extractErrorMessage(error)),
     });
   }
 
-  isTransitionDisabled(task: TaskItem, status: TaskStatus): boolean {
-    if (task.status === status) {
-      return true;
-    }
-
-    // Business rule: a Done task cannot go back to Pending.
-    if (task.status === 'Done' && status === 'Pending') {
-      return true;
-    }
-
-    return false;
+  cancelStatusChange(): void {
+    this.observationModal.set(null);
+    this.observationText.set('');
   }
 
-  transitionHint(task: TaskItem, status: TaskStatus): string {
-    if (task.status === status) {
-      return 'Este es el estado actual.';
-    }
-    if (task.status === 'Pending' && status === 'Done') {
-      return 'No permitido: primero mueve la tarea a In Progress.';
-    }
-    if (task.status === 'Done' && status === 'Pending') {
-      return 'No permitido: reabre la tarea pasando por In Progress.';
-    }
-    return `Cambiar estado a ${this.statusLabel(status)}.`;
+  openHistory(task: TaskItem): void {
+    this.historyModal.set({ task, entries: [], loading: true });
+    this.taskService.getHistory(task.id).subscribe({
+      next: (entries) => {
+        const current = this.historyModal();
+        if (current) {
+          this.historyModal.set({ ...current, entries, loading: false });
+        }
+      },
+      error: (error: unknown) => {
+        this.errorMessage.set(extractErrorMessage(error));
+        this.historyModal.set(null);
+      },
+    });
   }
 
-  statusLabel(status: TaskStatus): string {
-    return TaskListComponent.statusLabels[status];
+  closeHistory(): void {
+    this.historyModal.set(null);
+  }
+
+  priorityLabel(priority: string): string {
+    return TaskListComponent.priorityLabels[priority] ?? priority;
   }
 
   priorityOf(task: TaskItem): string | null {
     const priority = task.metadata?.['priority'];
     return typeof priority === 'string' ? priority : null;
-  }
-
-  priorityLabel(priority: string): string {
-    return TaskListComponent.priorityLabels[priority] ?? priority;
   }
 }

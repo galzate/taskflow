@@ -5,7 +5,7 @@ namespace TaskFlow.Api.DTOs.Tasks;
 
 /// <summary>
 /// Payload used to change the status of an existing task.
-/// 10-11-2026 Construido por: Ing GAAE - Input DTO for task status transitions.
+/// 10-11-2026 Construido por: Ing GAAE - Input DTO for task status transitions, with optional observation.
 /// </summary>
 public class UpdateTaskStatusRequest
 {
@@ -13,4 +13,8 @@ public class UpdateTaskStatusRequest
     [Required(ErrorMessage = "El estado es obligatorio.")]
     [EnumDataType(typeof(TaskItemStatus), ErrorMessage = "El estado debe ser uno de: Pending, InProgress, Done.")]
     public TaskItemStatus Status { get; set; }
+
+    /// <summary>Optional observation recorded in the task bitacora.</summary>
+    [StringLength(1000, ErrorMessage = "La observación no puede superar los 1000 caracteres.")]
+    public string? Observation { get; set; }
 }

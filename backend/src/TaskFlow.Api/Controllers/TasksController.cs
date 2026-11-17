@@ -74,4 +74,15 @@ public class TasksController : ControllerBase
         var updatedTask = await _taskService.UpdateStatusAsync(id, request, cancellationToken);
         return Ok(updatedTask);
     }
+    /// <summary>Returns the status change bitacora of a task.</summary>
+    [HttpGet("{id:int}/history")]
+    [ProducesResponseType(typeof(IReadOnlyList<TaskStatusHistoryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<TaskStatusHistoryResponse>>> GetHistory(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var history = await _taskService.GetHistoryAsync(id, cancellationToken);
+        return Ok(history);
+    }
 }

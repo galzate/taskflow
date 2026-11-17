@@ -1,4 +1,4 @@
-<!-- 10-11-2026 Construido por: Ing GAAE - Task list with filters, counter and status actions. -->
+<!-- 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop status transitions and bitacora. -->
 <section class="card">
   <header class="card-header">
     <div>
@@ -13,15 +13,6 @@
   </header>
 
   <div class="filters">
-    <div class="filter">
-      <label for="filter-status">Estado</label>
-      <app-select
-        inputId="filter-status"
-        [(ngModel)]="statusFilter"
-        (ngModelChange)="loadTasks()"
-        [options]="statusOptions()" />
-    </div>
-
     <div class="filter">
       <label for="filter-user">Usuario</label>
       <app-select
@@ -44,52 +35,137 @@
   <app-alert type="error" [message]="errorMessage()" (dismissed)="errorMessage.set(null)" />
   <app-alert type="success" [message]="successMessage()" (dismissed)="successMessage.set(null)" />
 
-  @if (!loading() && tasks().length === 0) {
+  @if (loading()) {
+    <p class="empty">Cargando tareas...</p>
+  } @else if (tasks().length === 0) {
     <p class="empty">No hay tareas que coincidan con los filtros.</p>
+  } @else {
+    <div class="kanban">
+      <div class="kanban-column" cdkDropList [id]="'Pending'" [cdkDropListData]="pendingTasks()" (cdkDropListDropped)="onDrop($event, 'Pending')">
+        <header class="kanban-column-header pending">Pending ({{ pendingTasks().length }})</header>
+        @for (task of pendingTasks(); track task.id) {
+          <div class="kanban-card" cdkDrag [cdkDragData]="task">
+            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+            <div class="card-title">{{ task.title }}</div>
+            @if (task.description) {
+              <p class="card-desc">{{ task.description }}</p>
+            }
+            <div class="card-meta">
+              <span>{{ task.assignedUserName }}</span>
+              @if (priorityOf(task); as priority) {
+                <span class="badge">{{ priorityLabel(priority) }}</span>
+              }
+            </div>
+            <div class="card-actions">
+              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+            </div>
+          </div>
+        }
+        @if (pendingTasks().length === 0) {
+          <p class="column-empty">Sin tareas</p>
+        }
+      </div>
+
+      <div class="kanban-column" cdkDropList [id]="'InProgress'" [cdkDropListData]="inProgressTasks()" (cdkDropListDropped)="onDrop($event, 'InProgress')">
+        <header class="kanban-column-header in-progress">In Progress ({{ inProgressTasks().length }})</header>
+        @for (task of inProgressTasks(); track task.id) {
+          <div class="kanban-card" cdkDrag [cdkDragData]="task">
+            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+            <div class="card-title">{{ task.title }}</div>
+            @if (task.description) {
+              <p class="card-desc">{{ task.description }}</p>
+            }
+            <div class="card-meta">
+              <span>{{ task.assignedUserName }}</span>
+              @if (priorityOf(task); as priority) {
+                <span class="badge">{{ priorityLabel(priority) }}</span>
+              }
+            </div>
+            <div class="card-actions">
+              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+            </div>
+          </div>
+        }
+        @if (inProgressTasks().length === 0) {
+          <p class="column-empty">Sin tareas</p>
+        }
+      </div>
+
+      <div class="kanban-column" cdkDropList [id]="'Done'" [cdkDropListData]="doneTasks()" (cdkDropListDropped)="onDrop($event, 'Done')">
+        <header class="kanban-column-header done">Done ({{ doneTasks().length }})</header>
+        @for (task of doneTasks(); track task.id) {
+          <div class="kanban-card" cdkDrag [cdkDragData]="task">
+            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+            <div class="card-title">{{ task.title }}</div>
+            @if (task.description) {
+              <p class="card-desc">{{ task.description }}</p>
+            }
+            <div class="card-meta">
+              <span>{{ task.assignedUserName }}</span>
+              @if (priorityOf(task); as priority) {
+                <span class="badge">{{ priorityLabel(priority) }}</span>
+              }
+            </div>
+            <div class="card-actions">
+              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+            </div>
+          </div>
+        }
+        @if (doneTasks().length === 0) {
+          <p class="column-empty">Sin tareas</p>
+        }
+      </div>
+    </div>
   }
 
-  <ul class="task-list">
-    @for (task of tasks(); track task.id) {
-      <li class="task-item">
-        <div class="task-main">
-          <div class="task-title-row">
-            <h3>{{ task.title }}</h3>
-            <span
-              class="badge"
-              [class.pending]="task.status === 'Pending'"
-              [class.in-progress]="task.status === 'InProgress'"
-              [class.done]="task.status === 'Done'">
-              {{ statusLabel(task.status) }}
-            </span>
-          </div>
+  <!-- Observation modal -->
+  @if (observationModal(); as m) {
+    <div class="modal-backdrop" (click)="cancelStatusChange()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Cambiar estado a {{ m.targetStatus === 'InProgress' ? 'In Progress' : m.targetStatus }}</h3>
+        <p class="modal-subtitle">Tarea: {{ m.task.title }}</p>
+        <div class="field">
+          <label for="obs">Observación (opcional)</label>
+          <textarea id="obs" rows="3" maxlength="1000" [ngModel]="observationText()" (ngModelChange)="observationText.set($event)"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" (click)="cancelStatusChange()">Cancelar</button>
+          <button type="button" class="btn primary" (click)="confirmStatusChange()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  }
 
-          @if (task.description) {
-            <p class="task-description">{{ task.description }}</p>
-          }
-
-          <div class="task-meta">
-            <span>Asignada a <strong>{{ task.assignedUserName }}</strong></span>
-            <span>Creada {{ task.createdAt | date: 'short' }}</span>
-            @if (priorityOf(task); as priority) {
-              <span>Prioridad <strong>{{ priorityLabel(priority) }}</strong></span>
+  <!-- Bitacora modal -->
+  @if (historyModal(); as h) {
+    <div class="modal-backdrop" (click)="closeHistory()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Bitácora — {{ h.task.title }}</h3>
+        @if (h.loading) {
+          <p>Cargando...</p>
+        } @else if (h.entries.length === 0) {
+          <p class="empty">Sin cambios registrados.</p>
+        } @else {
+          <ul class="history-list">
+            @for (entry of h.entries; track entry.id) {
+              <li class="history-item">
+                <div class="history-row">
+                  <span class="badge">{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</span>
+                  <span>→</span>
+                  <span class="badge">{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</span>
+                  <span class="history-date">{{ entry.changedAt | date: 'short' }}</span>
+                </div>
+                @if (entry.observation) {
+                  <p class="history-obs">{{ entry.observation }}</p>
+                }
+              </li>
             }
-          </div>
+          </ul>
+        }
+        <div class="modal-actions">
+          <button type="button" class="btn primary" (click)="closeHistory()">Cerrar</button>
         </div>
-
-        <div class="task-actions" aria-label="Cambiar estado de la tarea">
-          @for (status of statuses; track status) {
-            <button
-              type="button"
-              class="btn small"
-              [class.active]="task.status === status"
-              [disabled]="isTransitionDisabled(task, status)"
-              [title]="transitionHint(task, status)"
-              (click)="changeStatus(task, status)">
-              {{ statusLabel(status) }}
-            </button>
-          }
-        </div>
-      </li>
-    }
-  </ul>
+      </div>
+    </div>
+  }
 </section>

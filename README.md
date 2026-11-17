@@ -194,8 +194,11 @@ flowchart TB
 ### Tareas
 
 - Crear tareas (título y descripción obligatorios, usuario asignado obligatorio).
-- Listar tareas con filtros por **usuario** y **estado**, ordenadas por **fecha de creación** (`asc` / `desc`).
-- Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done`.
+- Listar tareas en **tablero Kanban** (columnas Pending, In Progress, Done) con **drag and drop** para cambiar de estado.
+- Al cambiar de estado se solicita una **observación** opcional que se guarda en la **bitácora** de la tarea.
+- Cada tarea tiene una **bitácora** (historial de cambios de estado con fecha/hora y observación).
+- Filtros por **usuario** y orden por **fecha de creación** (`asc` / `desc`).
+- Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done` (con validación: no se permite Pending → Done directo).
 - Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
 
 ### Interfaz
@@ -350,7 +353,8 @@ La URL base de la API se configura en `frontend/src/app/core/config/api.config.t
 | `POST` | `/api/tasks` | Crea una tarea asignada | `201`, `400`, `404` |
 | `GET` | `/api/tasks` | Lista tareas (`userId`, `status`, `sort=asc\|desc`) | `200` |
 | `GET` | `/api/tasks/{id}` | Tarea por id | `200`, `404` |
-| `PUT` | `/api/tasks/{id}/status` | Cambia el estado | `200`, `400`, `404`, `422` |
+| `PUT` | `/api/tasks/{id}/status` | Cambia el estado (con observación opcional) | `200`, `400`, `404`, `422` |
+| `GET` | `/api/tasks/{id}/history` | Bitácora de cambios de estado de una tarea | `200`, `404` |
 
 Ejemplos:
 
@@ -432,6 +436,17 @@ Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación 
 | `CreatedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
 | `UpdatedAt` | `datetime2(0)` | `NULL` |
 
+**TaskStatusHistory (bitácora)**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| `Id` | `int identity` | **PK** `PK_TaskStatusHistory` |
+| `TaskId` | `int` | `NOT NULL`, **FK** `FK_TaskStatusHistory_Tasks → Tasks(Id)` (ON DELETE CASCADE) |
+| `FromStatus` | `varchar(20)` | `NOT NULL`, `CHECK IN ('Pending','InProgress','Done')` |
+| `ToStatus` | `varchar(20)` | `NOT NULL`, `CHECK IN ('Pending','InProgress','Done')` |
+| `Observation` | `nvarchar(1000)` | `NULL` |
+| `ChangedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
+
 ### 9.2 Índices
 
 | Índice | Tabla | Columnas |
@@ -440,6 +455,7 @@ Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación 
 | `UQ_Users_Email` | Users | `Email` (unique) |
 | `IX_Tasks_AssignedUserId_Status_CreatedAt` | Tasks | `(AssignedUserId, Status, CreatedAt DESC)` + INCLUDE |
 | `IX_Tasks_Status_CreatedAt` | Tasks | `(Status, CreatedAt DESC)` + INCLUDE |
+| `PK_TaskStatusHistory` / `IX_TaskStatusHistory_TaskId_ChangedAt` | TaskStatusHistory | `Id` (clustered) / `(TaskId, ChangedAt DESC)` |
 
 ### 9.3 Consulta obligatoria
 
@@ -518,7 +534,7 @@ Pruebas actuales (6): humo del componente raíz (creación y render del encabeza
 9. **CORS acotado** al origen de desarrollo de Angular (`http://localhost:4200`).
 10. **Documentación de API con Scalar** sobre el OpenAPI nativo de .NET 10.
 11. **Comentarios con el formato solicitado** en código y scripts: `dd-mm-YYYY Construido por: Ing GAAE - Descripción del cambio`.
-12. **SQL Server en Docker.** Reproducible en cualquier máquina; en Apple Silicon se ejecuta con emulación Rosetta (documentado arriba).
+13. **Tablero Kanban con bitácora.** Las tareas se muestran en columnas Pending / In Progress / Done con drag and drop; cada cambio de estado solicita una observación opcional que se persiste en `TaskStatusHistory` (bitácora con fecha/hora).
 
 ---
 
@@ -552,6 +568,8 @@ Pruebas actuales (6): humo del componente raíz (creación y render del encabeza
 | Usuario inexistente al asignar | `404` |
 | `Pending → Done` directo | `422` (regla de negocio) |
 | Tarea inexistente | `404` |
+| Bitácora de tarea (GET history) | `200` con entradas de cambio |
+| Tablero Kanban (drag and drop) | `200` / transición validada |
 | JSON malformado o cuerpo ausente | `400` con mensaje en español |
 | Ruta inexistente | `404` con ProblemDetails |
 | Método HTTP no permitido | `405` con ProblemDetails |

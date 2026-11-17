@@ -34,4 +34,7 @@ public class TaskItem
 
     /// <summary>UTC timestamp of the last status update.</summary>
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>Audit log of every status change (bitacora).</summary>
+    public ICollection<TaskStatusHistory> StatusHistory { get; set; } = new List<TaskStatusHistory>();
 }

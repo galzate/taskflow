@@ -19,6 +19,9 @@ public class TaskFlowDbContext : DbContext
     /// <summary>Tasks tracked by the system.</summary>
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
 
+    /// <summary>Audit log of task status changes (bitacora).</summary>
+    public DbSet<TaskStatusHistory> TaskStatusHistory => Set<TaskStatusHistory>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 10-11-2026 Construido por: Ing GAAE - Applies all IEntityTypeConfiguration mappings.

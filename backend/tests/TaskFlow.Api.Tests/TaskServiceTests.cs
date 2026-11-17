@@ -117,7 +117,7 @@ public class TaskServiceTests
     [Fact]
     public async Task CreateAsync_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
-        var service = new TaskService(new FakeTaskRepository(), new FakeUserRepository());
+        var service = new TaskService(new FakeTaskRepository(), new FakeTaskStatusHistoryRepository(), new FakeUserRepository());
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.CreateAsync(new CreateTaskRequest
@@ -167,7 +167,7 @@ public class TaskServiceTests
 
     private static TaskService CreateService(FakeTaskRepository taskRepository)
     {
-        return new TaskService(taskRepository, new FakeUserRepository(ExistingUser));
+        return new TaskService(taskRepository, new FakeTaskStatusHistoryRepository(), new FakeUserRepository(ExistingUser));
     }
 
     /// <summary>
@@ -243,5 +243,23 @@ public class TaskServiceTests
 
         public Task UpdateAsync(TaskItem task, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// In-memory bitacora repository used to isolate the business rules from the database.
+    /// </summary>
+    private sealed class FakeTaskStatusHistoryRepository : ITaskStatusHistoryRepository
+    {
+        private readonly List<TaskStatusHistory> _entries = new();
+
+        public Task AddAsync(TaskStatusHistory entry, CancellationToken cancellationToken = default)
+        {
+            entry.Id = _entries.Count + 1;
+            _entries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<TaskStatusHistory>> GetByTaskIdAsync(int taskId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<TaskStatusHistory>>(_entries.Where(e => e.TaskId == taskId).ToList());
     }
 }

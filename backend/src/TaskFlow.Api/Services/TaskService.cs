@@ -14,11 +14,16 @@ namespace TaskFlow.Api.Services;
 public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly ITaskStatusHistoryRepository _historyRepository;
     private readonly IUserRepository _userRepository;
 
-    public TaskService(ITaskRepository taskRepository, IUserRepository userRepository)
+    public TaskService(
+        ITaskRepository taskRepository,
+        ITaskStatusHistoryRepository historyRepository,
+        IUserRepository userRepository)
     {
         _taskRepository = taskRepository;
+        _historyRepository = historyRepository;
         _userRepository = userRepository;
     }
 
@@ -95,6 +100,8 @@ public class TaskService : ITaskService
             return MapToResponse(task);
         }
 
+        var previousStatus = task.Status;
+
         // Business rule: a task cannot jump directly from Pending to Done.
         if (task.Status == TaskItemStatus.Pending && request.Status == TaskItemStatus.Done)
         {
@@ -113,7 +120,38 @@ public class TaskService : ITaskService
         task.UpdatedAt = DateTime.UtcNow;
         await _taskRepository.UpdateAsync(task, cancellationToken);
 
+        // Bitacora: record the status change with its optional observation.
+        await _historyRepository.AddAsync(new TaskStatusHistory
+        {
+            TaskId = task.Id,
+            FromStatus = previousStatus,
+            ToStatus = request.Status,
+            Observation = string.IsNullOrWhiteSpace(request.Observation) ? null : request.Observation.Trim(),
+            ChangedAt = DateTime.UtcNow
+        }, cancellationToken);
+
         return MapToResponse(task);
+    }
+
+    public async Task<IReadOnlyList<TaskStatusHistoryResponse>> GetHistoryAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
+        if (task is null)
+        {
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
+        }
+
+        var entries = await _historyRepository.GetByTaskIdAsync(id, cancellationToken);
+        return entries.Select(entry => new TaskStatusHistoryResponse
+        {
+            Id = entry.Id,
+            FromStatus = entry.FromStatus,
+            ToStatus = entry.ToStatus,
+            Observation = entry.Observation,
+            ChangedAt = entry.ChangedAt
+        }).ToList();
     }
 
     /// <summary>

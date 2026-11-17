@@ -64,3 +64,28 @@ BEGIN
     );
 END;
 GO
+
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Creates the TaskStatusHistory table (bitacora).
+-- ============================================================================
+IF OBJECT_ID(N'dbo.TaskStatusHistory', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.TaskStatusHistory
+    (
+        Id          INT             IDENTITY(1,1) NOT NULL,
+        TaskId      INT             NOT NULL,
+        FromStatus  VARCHAR(20)     NOT NULL,
+        ToStatus    VARCHAR(20)     NOT NULL,
+        Observation NVARCHAR(1000)  NULL,
+        ChangedAt   DATETIME2(0)    NOT NULL
+            CONSTRAINT DF_TaskStatusHistory_ChangedAt DEFAULT SYSUTCDATETIME(),
+
+        CONSTRAINT PK_TaskStatusHistory PRIMARY KEY CLUSTERED (Id),
+        CONSTRAINT FK_TaskStatusHistory_Tasks FOREIGN KEY (TaskId)
+            REFERENCES dbo.Tasks (Id)
+            ON DELETE CASCADE,
+        CONSTRAINT CK_TaskStatusHistory_FromStatus CHECK (FromStatus IN ('Pending', 'InProgress', 'Done')),
+        CONSTRAINT CK_TaskStatusHistory_ToStatus CHECK (ToStatus IN ('Pending', 'InProgress', 'Done'))
+    );
+END;
+GO

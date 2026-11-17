@@ -54,6 +54,7 @@ builder.Services.AddDbContext<TaskFlowDbContext>(options =>
 // Dependency inversion: abstractions are registered against their implementations.
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ITaskStatusHistoryRepository, TaskStatusHistoryRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 

@@ -23,4 +23,8 @@ public interface ITaskService
         int id,
         UpdateTaskStatusRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TaskStatusHistoryResponse>> GetHistoryAsync(
+        int id,
+        CancellationToken cancellationToken = default);
 }
