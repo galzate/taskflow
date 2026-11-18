@@ -1,4 +1,4 @@
-<!-- 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop status transitions and bitacora. -->
+<!-- 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop, edit modal and bitacoras. -->
 <section class="card">
   <header class="card-header">
     <div>
@@ -59,8 +59,7 @@
               </div>
             </div>
             <div class="card-actions">
-              <button type="button" class="btn tiny" (click)="openHistory(task)">Bitácora</button>
-              <button type="button" class="btn tiny" (click)="openDetail(task)">Detalle</button>
+              <button type="button" class="btn tiny" (click)="openEdit(task)">Editar</button>
             </div>
           </div>
         }
@@ -87,8 +86,7 @@
               </div>
             </div>
             <div class="card-actions">
-              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
-              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openDetail(task)">Detalle</button>
+              <button type="button" class="btn tiny" (click)="openEdit(task)">Editar</button>
             </div>
           </div>
         }
@@ -115,8 +113,7 @@
               </div>
             </div>
             <div class="card-actions">
-              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
-              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openDetail(task)">Detalle</button>
+              <button type="button" class="btn tiny" (click)="openEdit(task)">Editar</button>
             </div>
           </div>
         }
@@ -148,117 +145,103 @@
     </div>
   }
 
-  <!-- Bitacora modal -->
-  @if (historyModal(); as h) {
-    <div class="modal-backdrop" (click)="closeHistory()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Bitácora — {{ h.task.title }}</h3>
-        @if (h.loading) {
-          <p>Cargando...</p>
-        } @else if (h.entries.length === 0) {
-          <p class="empty">Sin cambios registrados.</p>
-        } @else {
-          <table class="grid">
-            <thead>
-              <tr>
-                <th>Desde</th>
-                <th>Hasta</th>
-                <th>Observación</th>
-                <th>Fecha/Hora</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (entry of h.entries; track entry.id) {
-                <tr>
-                  <td>{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</td>
-                  <td>{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</td>
-                  <td>{{ entry.observation || '—' }}</td>
-                  <td>{{ entry.changedAt | date: 'short' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-        <div class="modal-actions">
-          <button type="button" class="btn primary" (click)="closeHistory()">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  }
-  <!-- Detail modal -->
-  @if (detailModal(); as d) {
-    <div class="modal-backdrop" (click)="closeDetail()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Detalle — {{ d.task.title }}</h3>
-        <div class="detail-info">
-          <p><strong>Descripción:</strong> {{ d.task.description }}</p>
-          <p><strong>Estado:</strong> {{ d.task.status === 'InProgress' ? 'In Progress' : d.task.status }}</p>
-          <p><strong>Asignada a:</strong> {{ d.task.assignedUserName }}</p>
-          <p><strong>Creada:</strong> {{ d.task.createdAt | date: 'short' }}</p>
-          @if (priorityOf(d.task); as priority) {
-            <p><strong>Prioridad:</strong> {{ priorityLabel(priority) }}</p>
-          }
-        </div>
-
-        <h4>Bitácora de estados</h4>
-        @if (d.loading) {
-          <p>Cargando...</p>
-        } @else if (d.history.length === 0) {
-          <p class="empty">Sin cambios de estado registrados.</p>
-        } @else {
-          <table class="grid">
-            <thead>
-              <tr>
-                <th>Desde</th>
-                <th>Hasta</th>
-                <th>Observación</th>
-                <th>Fecha/Hora</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (entry of d.history; track entry.id) {
-                <tr>
-                  <td>{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</td>
-                  <td>{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</td>
-                  <td>{{ entry.observation }}</td>
-                  <td>{{ entry.changedAt | date: 'short' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-
-        <h4>Bitácora de actividad</h4>
-        @if (d.loading) {
-          <p>Cargando...</p>
-        } @else if (d.activities.length === 0) {
-          <p class="empty">Sin actividades registradas.</p>
-        } @else {
-          <table class="grid">
-            <thead>
-              <tr>
-                <th>Fecha/Hora</th>
-                <th>Actividad</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (entry of d.activities; track entry.id) {
-                <tr>
-                  <td>{{ entry.loggedAt | date: 'short' }}</td>
-                  <td>{{ entry.description }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+  <!-- Edit modal (with bitacoras) -->
+  @if (editModal(); as e) {
+    <div class="modal-backdrop" (click)="closeEdit()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <h3>Editar tarea — {{ e.task.title }}</h3>
 
         <div class="field">
-          <label for="new-activity">Registrar actividad</label>
-          <textarea id="new-activity" rows="2" maxlength="1000" [ngModel]="d.newActivity" (ngModelChange)="detailModal.set({ ...d, newActivity: $event })"></textarea>
+          <label for="edit-title">Título *</label>
+          <input id="edit-title" type="text" maxlength="200" [ngModel]="e.title" (ngModelChange)="editModal.set({ ...e, title: $event })" />
         </div>
+
+        <div class="field">
+          <label for="edit-description">Descripción *</label>
+          <textarea id="edit-description" rows="3" maxlength="1000" [ngModel]="e.description" (ngModelChange)="editModal.set({ ...e, description: $event })"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="edit-user">Usuario asignado *</label>
+            <app-select
+              inputId="edit-user"
+              [ngModel]="toString(e.assignedUserId)"
+              (ngModelChange)="editModal.set({ ...e, assignedUserId: toNumber($event) })"
+              [options]="editUserOptions()" />
+          </div>
+
+          <div class="field">
+            <label for="edit-priority">Prioridad</label>
+            <app-select
+              inputId="edit-priority"
+              [ngModel]="e.priority"
+              (ngModelChange)="editModal.set({ ...e, priority: $event })"
+              [options]="priorityOptions" />
+          </div>
+        </div>
+
+        @if (e.loading) {
+          <p>Cargando bitácoras...</p>
+        } @else {
+          <h4>Bitácora de estados</h4>
+          @if (e.history.length === 0) {
+            <p class="empty">Sin cambios de estado registrados.</p>
+          } @else {
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Desde</th>
+                  <th>Hasta</th>
+                  <th>Observación</th>
+                  <th>Fecha/Hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entry of e.history; track entry.id) {
+                  <tr>
+                    <td>{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</td>
+                    <td>{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</td>
+                    <td>{{ entry.observation }}</td>
+                    <td>{{ entry.changedAt | date: 'short' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+
+          <h4>Bitácora de actividad</h4>
+          @if (e.activities.length === 0) {
+            <p class="empty">Sin actividades registradas.</p>
+          } @else {
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Fecha/Hora</th>
+                  <th>Actividad</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entry of e.activities; track entry.id) {
+                  <tr>
+                    <td>{{ entry.loggedAt | date: 'short' }}</td>
+                    <td>{{ entry.description }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+
+          <div class="field">
+            <label for="new-activity">Registrar actividad</label>
+            <textarea id="new-activity" rows="2" maxlength="1000" [ngModel]="e.newActivity" (ngModelChange)="editModal.set({ ...e, newActivity: $event })"></textarea>
+          </div>
+        }
+
         <div class="modal-actions">
-          <button type="button" class="btn ghost" (click)="closeDetail()">Cerrar</button>
-          <button type="button" class="btn primary" [disabled]="!d.newActivity.trim()" (click)="submitActivity()">Registrar</button>
+          <button type="button" class="btn ghost" (click)="closeEdit()">Cancelar</button>
+          <button type="button" class="btn primary" [disabled]="e.saving || !e.title.trim() || !e.description.trim()" (click)="saveEdit()">Guardar</button>
+          <button type="button" class="btn tiny" [disabled]="!e.newActivity.trim()" (click)="submitActivity()">Registrar actividad</button>
         </div>
       </div>
     </div>

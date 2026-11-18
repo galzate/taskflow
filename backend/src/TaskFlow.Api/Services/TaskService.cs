@@ -142,6 +142,45 @@ public class TaskService : ITaskService
         return MapToResponse(task);
     }
 
+    public async Task<TaskResponse> UpdateAsync(
+        int id,
+        UpdateTaskRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
+        if (task is null)
+        {
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
+        }
+
+        // Business rule: a task must always be assigned to an existing user.
+        var assignedUser = await _userRepository.GetByIdAsync(request.AssignedUserId, cancellationToken);
+        if (assignedUser is null)
+        {
+            throw new NotFoundException($"No se encontró el usuario con id {request.AssignedUserId}.");
+        }
+
+        var metadataJson = NormalizeMetadata(request.Metadata);
+
+        task.Title = request.Title.Trim();
+        task.Description = request.Description.Trim();
+        task.AssignedUserId = request.AssignedUserId;
+        task.Metadata = metadataJson;
+        task.UpdatedAt = DateTime.UtcNow;
+
+        await _taskRepository.UpdateAsync(task, cancellationToken);
+
+        // Bitacora de actividad: record the edition.
+        await _activityRepository.AddAsync(new TaskActivity
+        {
+            TaskId = task.Id,
+            Description = "Tarea editada.",
+            LoggedAt = DateTime.UtcNow
+        }, cancellationToken);
+
+        task.AssignedUser = assignedUser;
+        return MapToResponse(task);
+    }
     public async Task<IReadOnlyList<TaskStatusHistoryResponse>> GetHistoryAsync(
         int id,
         CancellationToken cancellationToken = default)

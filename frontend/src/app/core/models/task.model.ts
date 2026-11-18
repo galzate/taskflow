@@ -38,3 +38,10 @@ export interface TaskActivity {
   description: string;
   loggedAt: string;
 }
+
+export interface UpdateTaskRequest {
+  title: string;
+  description: string;
+  assignedUserId: number;
+  metadata?: Record<string, unknown> | null;
+}

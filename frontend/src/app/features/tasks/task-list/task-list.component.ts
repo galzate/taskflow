@@ -1,10 +1,10 @@
-// 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop status transitions and bitacora.
+// 10-11-2026 Construido por: Ing GAAE - Kanban board with drag and drop, edit modal and bitacoras.
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { TaskItem, TaskStatus, TaskStatusHistory, TaskActivity, UpdateTaskStatusRequest } from '../../../core/models/task.model';
+import { TaskActivity, TaskItem, TaskStatus, TaskStatusHistory, UpdateTaskRequest, UpdateTaskStatusRequest } from '../../../core/models/task.model';
 import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
@@ -39,12 +39,23 @@ export class TaskListComponent implements OnInit {
   readonly userFilter = signal<string>('');
   readonly sortOrder = signal<'asc' | 'desc'>('desc');
 
+  // Observation modal (drag and drop status change)
   readonly observationModal = signal<{ task: TaskItem; targetStatus: TaskStatus } | null>(null);
   readonly observationText = signal('');
 
-  readonly historyModal = signal<{ task: TaskItem; entries: TaskStatusHistory[]; loading: boolean } | null>(null);
-
-  readonly detailModal = signal<{ task: TaskItem; activities: TaskActivity[]; history: TaskStatusHistory[]; loading: boolean; newActivity: string } | null>(null);
+  // Edit modal (edit task + bitacoras)
+  readonly editModal = signal<{
+    task: TaskItem;
+    title: string;
+    description: string;
+    assignedUserId: number;
+    priority: string;
+    history: TaskStatusHistory[];
+    activities: TaskActivity[];
+    loading: boolean;
+    newActivity: string;
+    saving: boolean;
+  } | null>(null);
 
   readonly pendingTasks = computed(() => this.tasks().filter((t) => t.status === 'Pending'));
   readonly inProgressTasks = computed(() => this.tasks().filter((t) => t.status === 'InProgress'));
@@ -65,9 +76,19 @@ export class TaskListComponent implements OnInit {
     ...this.users().map((user) => ({ value: String(user.id), label: user.name })),
   ]);
 
+  readonly editUserOptions = computed<SelectOption[]>(() =>
+    this.users().map((user) => ({ value: String(user.id), label: user.name })),
+  );
+
   readonly sortOptions: SelectOption[] = [
     { value: 'desc', label: 'Más recientes primero' },
     { value: 'asc', label: 'Más antiguos primero' },
+  ];
+
+  readonly priorityOptions: SelectOption[] = [
+    { value: 'Low', label: 'Baja' },
+    { value: 'Medium', label: 'Media' },
+    { value: 'High', label: 'Alta' },
   ];
 
   constructor() {
@@ -154,67 +175,95 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
-  openHistory(task: TaskItem): void {
-    this.historyModal.set({ task, entries: [], loading: true });
-    this.taskService.getHistory(task.id).subscribe({
-      next: (entries) => {
-        const current = this.historyModal();
-        if (current) {
-          this.historyModal.set({ ...current, entries, loading: false });
-        }
-      },
-      error: (error: unknown) => {
-        this.errorMessage.set(extractErrorMessage(error));
-        this.historyModal.set(null);
-      },
+  openEdit(task: TaskItem): void {
+    const priority = (task.metadata?.['priority'] as string) ?? 'High';
+    this.editModal.set({
+      task,
+      title: task.title,
+      description: task.description,
+      assignedUserId: task.assignedUserId,
+      priority,
+      history: [],
+      activities: [],
+      loading: true,
+      newActivity: '',
+      saving: false,
     });
-  }
 
-  closeHistory(): void {
-    this.historyModal.set(null);
-  }
-
-  openDetail(task: TaskItem): void {
-    this.detailModal.set({ task, activities: [], history: [], loading: true, newActivity: '' });
-    // Load both bitacoras in parallel.
+    // Load both bitacoras.
     this.taskService.getHistory(task.id).subscribe({
       next: (entries) => {
-        const current = this.detailModal();
+        const current = this.editModal();
         if (current) {
-          this.detailModal.set({ ...current, history: entries });
+          this.editModal.set({ ...current, history: entries });
         }
       },
       error: (error: unknown) => this.errorMessage.set(extractErrorMessage(error)),
     });
+
     this.taskService.getActivities(task.id).subscribe({
       next: (entries) => {
-        const current = this.detailModal();
+        const current = this.editModal();
         if (current) {
-          this.detailModal.set({ ...current, activities: entries, loading: false });
+          this.editModal.set({ ...current, activities: entries, loading: false });
         }
       },
       error: (error: unknown) => {
         this.errorMessage.set(extractErrorMessage(error));
-        const current = this.detailModal();
+        const current = this.editModal();
         if (current) {
-          this.detailModal.set({ ...current, loading: false });
+          this.editModal.set({ ...current, loading: false });
         }
       },
     });
   }
 
-  closeDetail(): void {
-    this.detailModal.set(null);
+  closeEdit(): void {
+    this.editModal.set(null);
+  }
+
+  saveEdit(): void {
+    const modal = this.editModal();
+    if (!modal || !modal.title.trim() || !modal.description.trim()) return;
+
+    const metadata: Record<string, unknown> = { ...(modal.task.metadata ?? {}) };
+    metadata['priority'] = modal.priority;
+
+    const request = {
+      title: modal.title.trim(),
+      description: modal.description.trim(),
+      assignedUserId: modal.assignedUserId,
+      metadata,
+    };
+
+    this.editModal.set({ ...modal, saving: true });
+
+    this.taskService.updateTask(modal.task.id, request).subscribe({
+      next: (updatedTask) => {
+        this.tasks.update((tasks) =>
+          tasks.map((current) => (current.id === updatedTask.id ? updatedTask : current)),
+        );
+        this.editModal.set(null);
+        this.successMessage.set(`Tarea "${updatedTask.title}" actualizada.`);
+      },
+      error: (error: unknown) => {
+        this.errorMessage.set(extractErrorMessage(error));
+        const current = this.editModal();
+        if (current) {
+          this.editModal.set({ ...current, saving: false });
+        }
+      },
+    });
   }
 
   submitActivity(): void {
-    const modal = this.detailModal();
+    const modal = this.editModal();
     if (!modal || !modal.newActivity.trim()) return;
     this.taskService.addActivity(modal.task.id, modal.newActivity.trim()).subscribe({
       next: (entry) => {
-        const current = this.detailModal();
+        const current = this.editModal();
         if (current) {
-          this.detailModal.set({
+          this.editModal.set({
             ...current,
             activities: [...current.activities, entry],
             newActivity: '',
@@ -226,12 +275,20 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  priorityOf(task: TaskItem): string | null {
+    const priority = task.metadata?.['priority'];
+    return typeof priority === 'string' ? priority : null;
+  }
+
   priorityLabel(priority: string): string {
     return TaskListComponent.priorityLabels[priority] ?? priority;
   }
 
-  priorityOf(task: TaskItem): string | null {
-    const priority = task.metadata?.['priority'];
-    return typeof priority === 'string' ? priority : null;
+  toString(value: unknown): string {
+    return String(value);
+  }
+
+  toNumber(value: unknown): number {
+    return Number(value);
   }
 }

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { CreateTaskRequest, TaskActivity, TaskItem, TaskStatus, TaskStatusHistory, UpdateTaskStatusRequest } from '../models/task.model';
+import { CreateTaskRequest, TaskActivity, TaskItem, TaskStatus, TaskStatusHistory, UpdateTaskRequest, UpdateTaskStatusRequest } from '../models/task.model';
 
 export interface TaskFilters {
   userId?: number | null;
@@ -38,6 +38,10 @@ export class TaskService {
 
   updateStatus(id: number, request: UpdateTaskStatusRequest): Observable<TaskItem> {
     return this.http.put<TaskItem>(`${this.baseUrl}/${id}/status`, request);
+  }
+
+  updateTask(id: number, request: UpdateTaskRequest): Observable<TaskItem> {
+    return this.http.put<TaskItem>(`${this.baseUrl}/${id}`, request);
   }
 
   getHistory(id: number): Observable<TaskStatusHistory[]> {

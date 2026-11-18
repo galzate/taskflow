@@ -111,4 +111,18 @@ public class TasksController : ControllerBase
         var activity = await _taskService.AddActivityAsync(id, request, cancellationToken);
         return CreatedAtAction(nameof(GetActivities), new { id }, activity);
     }
+
+    /// <summary>Updates the editable fields of a task.</summary>
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(TaskResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskResponse>> Update(
+        int id,
+        [FromBody] UpdateTaskRequest request,
+        CancellationToken cancellationToken)
+    {
+        var updatedTask = await _taskService.UpdateAsync(id, request, cancellationToken);
+        return Ok(updatedTask);
+    }
 }
