@@ -119,17 +119,23 @@ public class TaskService : ITaskService
                 "Una tarea completada no puede volver a Pending. Primero muévela a In Progress.");
         }
 
+        // Business rule: an observation is mandatory when changing status.
+        if (string.IsNullOrWhiteSpace(request.Observation))
+        {
+            throw new ValidationException("La observación es obligatoria.");
+        }
+
         task.Status = request.Status;
         task.UpdatedAt = DateTime.UtcNow;
         await _taskRepository.UpdateAsync(task, cancellationToken);
 
-        // Bitacora: record the status change with its optional observation.
+        // Bitacora: record the status change with its observation.
         await _historyRepository.AddAsync(new TaskStatusHistory
         {
             TaskId = task.Id,
             FromStatus = previousStatus,
             ToStatus = request.Status,
-            Observation = string.IsNullOrWhiteSpace(request.Observation) ? null : request.Observation.Trim(),
+            Observation = request.Observation!.Trim(),
             ChangedAt = DateTime.UtcNow
         }, cancellationToken);
 

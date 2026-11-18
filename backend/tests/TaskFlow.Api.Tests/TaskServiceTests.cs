@@ -38,6 +38,22 @@ public class TaskServiceTests
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_WhenObservationIsMissing_ThrowsValidationException()
+    {
+        var taskRepository = new FakeTaskRepository();
+        var task = await taskRepository.AddAsync(new TaskItem
+        {
+            Title = "Sample task",
+            AssignedUserId = ExistingUser.Id,
+            Status = TaskItemStatus.Pending
+        });
+        var service = CreateService(taskRepository);
+
+        await Assert.ThrowsAsync<ValidationException>(() =>
+            service.UpdateStatusAsync(task.Id, new UpdateTaskStatusRequest { Status = TaskItemStatus.InProgress, Observation = "   " }));
+    }
+
+    [Fact]
     public async Task UpdateStatusAsync_WhenMovingFromPendingToInProgress_UpdatesTheStatus()
     {
         var taskRepository = new FakeTaskRepository();
@@ -51,7 +67,7 @@ public class TaskServiceTests
 
         var updated = await service.UpdateStatusAsync(
             task.Id,
-            new UpdateTaskStatusRequest { Status = TaskItemStatus.InProgress });
+            new UpdateTaskStatusRequest { Status = TaskItemStatus.InProgress, Observation = "Moviendo a progreso." });
 
         Assert.Equal(TaskItemStatus.InProgress, updated.Status);
         Assert.NotNull(updated.UpdatedAt);
@@ -71,7 +87,7 @@ public class TaskServiceTests
 
         var updated = await service.UpdateStatusAsync(
             task.Id,
-            new UpdateTaskStatusRequest { Status = TaskItemStatus.Done });
+            new UpdateTaskStatusRequest { Status = TaskItemStatus.Done, Observation = "Completando la tarea." });
 
         Assert.Equal(TaskItemStatus.Done, updated.Status);
     }

@@ -22,7 +22,7 @@ export interface CreateTaskRequest {
 
 export interface UpdateTaskStatusRequest {
   status: TaskStatus;
-  observation?: string;
+  observation: string;
 }
 
 export interface TaskStatusHistory {

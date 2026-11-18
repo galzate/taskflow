@@ -76,7 +76,7 @@ BEGIN
         TaskId      INT             NOT NULL,
         FromStatus  VARCHAR(20)     NOT NULL,
         ToStatus    VARCHAR(20)     NOT NULL,
-        Observation NVARCHAR(1000)  NULL,
+        Observation NVARCHAR(1000)  NOT NULL,
         ChangedAt   DATETIME2(0)    NOT NULL
             CONSTRAINT DF_TaskStatusHistory_ChangedAt DEFAULT SYSUTCDATETIME(),
 

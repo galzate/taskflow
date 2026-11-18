@@ -14,7 +14,8 @@ public class UpdateTaskStatusRequest
     [EnumDataType(typeof(TaskItemStatus), ErrorMessage = "El estado debe ser uno de: Pending, InProgress, Done.")]
     public TaskItemStatus Status { get; set; }
 
-    /// <summary>Optional observation recorded in the task bitacora.</summary>
+    /// <summary>Observation recorded in the task bitacora. Required when changing status.</summary>
+    [Required(ErrorMessage = "La observación es obligatoria.")]
     [StringLength(1000, ErrorMessage = "La observación no puede superar los 1000 caracteres.")]
     public string? Observation { get; set; }
 }

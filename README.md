@@ -353,7 +353,7 @@ La URL base de la API se configura en `frontend/src/app/core/config/api.config.t
 | `POST` | `/api/tasks` | Crea una tarea asignada | `201`, `400`, `404` |
 | `GET` | `/api/tasks` | Lista tareas (`userId`, `status`, `sort=asc\|desc`) | `200` |
 | `GET` | `/api/tasks/{id}` | Tarea por id | `200`, `404` |
-| `PUT` | `/api/tasks/{id}/status` | Cambia el estado (con observación opcional) | `200`, `400`, `404`, `422` |
+| `PUT` | `/api/tasks/{id}/status` | Cambia el estado (con observación obligatoria) | `200`, `400`, `404`, `422` |
 | `GET` | `/api/tasks/{id}/history` | Bitácora de cambios de estado de una tarea | `200`, `404` |
 | `GET` | `/api/tasks/{id}/activities` | Bitácora de actividad de una tarea | `200`, `404` |
 | `POST` | `/api/tasks/{id}/activities` | Registra una actividad en la tarea | `201`, `400`, `404` |
@@ -446,7 +446,7 @@ Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación 
 | `TaskId` | `int` | `NOT NULL`, **FK** `FK_TaskStatusHistory_Tasks → Tasks(Id)` (ON DELETE CASCADE) |
 | `FromStatus` | `varchar(20)` | `NOT NULL`, `CHECK IN ('Pending','InProgress','Done')` |
 | `ToStatus` | `varchar(20)` | `NOT NULL`, `CHECK IN ('Pending','InProgress','Done')` |
-| `Observation` | `nvarchar(1000)` | `NULL` |
+| `Observation` | `nvarchar(1000)` | `NOT NULL` |
 | `ChangedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
 
 **TaskActivities (bitácora de actividad)**

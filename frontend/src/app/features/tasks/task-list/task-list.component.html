@@ -134,12 +134,15 @@
         <h3>Cambiar estado a {{ m.targetStatus === 'InProgress' ? 'In Progress' : m.targetStatus }}</h3>
         <p class="modal-subtitle">Tarea: {{ m.task.title }}</p>
         <div class="field">
-          <label for="obs">Observación (opcional)</label>
-          <textarea id="obs" rows="3" maxlength="1000" [ngModel]="observationText()" (ngModelChange)="observationText.set($event)"></textarea>
+          <label for="obs">Observación *</label>
+          <textarea id="obs" rows="3" maxlength="1000" [ngModel]="observationText()" (ngModelChange)="observationText.set($event)" required></textarea>
+          @if (!observationText().trim()) {
+            <p class="field-error">La observación es obligatoria.</p>
+          }
         </div>
         <div class="modal-actions">
           <button type="button" class="btn ghost" (click)="cancelStatusChange()">Cancelar</button>
-          <button type="button" class="btn primary" (click)="confirmStatusChange()">Confirmar</button>
+          <button type="button" class="btn primary" [disabled]="!observationText().trim()" (click)="confirmStatusChange()">Confirmar</button>
         </div>
       </div>
     </div>

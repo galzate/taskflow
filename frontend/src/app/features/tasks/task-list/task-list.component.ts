@@ -126,10 +126,11 @@ export class TaskListComponent implements OnInit {
   confirmStatusChange(): void {
     const modal = this.observationModal();
     if (!modal) return;
+    if (!this.observationText().trim()) return;
 
     const request: UpdateTaskStatusRequest = {
       status: modal.targetStatus,
-      observation: this.observationText().trim() || undefined,
+      observation: this.observationText().trim(),
     };
 
     this.observationModal.set(null);

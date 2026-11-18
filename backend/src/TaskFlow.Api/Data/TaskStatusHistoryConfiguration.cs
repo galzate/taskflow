@@ -31,7 +31,8 @@ public class TaskStatusHistoryConfiguration : IEntityTypeConfiguration<TaskStatu
             .IsRequired();
         builder.Property(entry => entry.Observation)
             .HasColumnName("Observation")
-            .HasMaxLength(1000);
+            .HasMaxLength(1000)
+            .IsRequired();
         builder.Property(entry => entry.ChangedAt)
             .HasColumnName("ChangedAt")
             .HasDefaultValueSql("SYSUTCDATETIME()");
