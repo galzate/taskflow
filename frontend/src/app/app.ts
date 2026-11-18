@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TaskFormComponent } from './features/tasks/task-form/task-form.component';
 import { TaskListComponent } from './features/tasks/task-list/task-list.component';
 import { UserFormComponent } from './features/users/user-form/user-form.component';
@@ -10,4 +10,14 @@ import { UserFormComponent } from './features/users/user-form/user-form.componen
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  readonly helpOpen = signal(false);
+
+  openHelp(): void {
+    this.helpOpen.set(true);
+  }
+
+  closeHelp(): void {
+    this.helpOpen.set(false);
+  }
+}

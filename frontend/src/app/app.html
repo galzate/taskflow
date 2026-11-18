@@ -21,6 +21,44 @@
 </main>
 
 <footer class="app-footer">
-  <span>TaskFlow - Prueba técnica Fullstack</span>
-  <span>Construido por Ing. GAAE</span>
+  <button type="button" class="btn ghost" (click)="openHelp()">Ayuda</button>
 </footer>
+
+@if (helpOpen()) {
+  <div class="modal-backdrop" (click)="closeHelp()">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <h3>Ayuda — TaskFlow</h3>
+      <p class="modal-subtitle">Sistema Interno de Gestión de Tareas</p>
+
+      <div class="help-section">
+        <h4>Funcionalidades</h4>
+        <ul class="help-list">
+          <li><strong>Nuevo Usuario:</strong> registra un colaborador con nombre y correo electrónico único.</li>
+          <li><strong>Nueva Tarea:</strong> crea una tarea con título y descripción obligatorios, asignada a un usuario. La prioridad por defecto es Alta.</li>
+          <li><strong>Tablero Kanban:</strong> muestra las tareas en tres columnas (Pending, In Progress, Done). Arrastra una tarjeta entre columnas para cambiar su estado.</li>
+          <li><strong>Validación de transición:</strong> no se permite pasar una tarea directamente de Pending a Done; primero debe pasar por In Progress.</li>
+          <li><strong>Observación obligatoria:</strong> al cambiar de estado se solicita una observación que queda registrada en la bitácora.</li>
+          <li><strong>Editar tarea:</strong> permite modificar título, descripción y prioridad. El usuario asignado y la fecha de creación son de solo lectura.</li>
+          <li><strong>Bitácora de estados:</strong> historial de cada cambio de estado con fecha/hora y observación.</li>
+          <li><strong>Bitácora de actividad:</strong> registro de lo que se hizo en la tarea, con fecha/hora. Se pueden agregar nuevas actividades.</li>
+          <li><strong>Filtros:</strong> filtra el tablero por usuario y ordena por fecha de creación (ascendente/descendente).</li>
+          <li><strong>Contador resumen:</strong> muestra el total de tareas y cuántas hay en cada estado.</li>
+          <li><strong>Mensajes:</strong> alertas de éxito y error en español que se cierran automáticamente a los 2 segundos.</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h4>Para qué sirve</h4>
+        <p>TaskFlow centraliza la gestión del trabajo de un equipo: asigna tareas a colaboradores, hace seguimiento de su avance por estados y mantiene una bitácora completa de cada cambio y actividad realizada, garantizando trazabilidad y control.</p>
+      </div>
+
+      <div class="help-footer">
+        <span>Copyright 2026 Desarrollado por: Ing. Gustavo A. Alzate</span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn primary" (click)="closeHelp()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
