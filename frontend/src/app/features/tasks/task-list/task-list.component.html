@@ -40,8 +40,8 @@
   } @else if (tasks().length === 0) {
     <p class="empty">No hay tareas que coincidan con los filtros.</p>
   } @else {
-    <div class="kanban">
-      <div class="kanban-column" cdkDropList [id]="'Pending'" [cdkDropListData]="pendingTasks()" (cdkDropListDropped)="onDrop($event, 'Pending')">
+    <div class="kanban" cdkDropListGroup>
+      <div class="kanban-column" cdkDropList [id]="'Pending'" [cdkDropListData]="pendingTasks()" [cdkDropListConnectedTo]="['InProgress','Done']" (cdkDropListDropped)="onDrop($event, 'Pending')">
         <header class="kanban-column-header pending">Pending ({{ pendingTasks().length }})</header>
         @for (task of pendingTasks(); track task.id) {
           <div class="kanban-card-wrapper">
@@ -69,7 +69,7 @@
         }
       </div>
 
-      <div class="kanban-column" cdkDropList [id]="'InProgress'" [cdkDropListData]="inProgressTasks()" (cdkDropListDropped)="onDrop($event, 'InProgress')">
+      <div class="kanban-column" cdkDropList [id]="'InProgress'" [cdkDropListData]="inProgressTasks()" [cdkDropListConnectedTo]="['Pending','Done']" (cdkDropListDropped)="onDrop($event, 'InProgress')">
         <header class="kanban-column-header in-progress">In Progress ({{ inProgressTasks().length }})</header>
         @for (task of inProgressTasks(); track task.id) {
           <div class="kanban-card-wrapper">
@@ -97,7 +97,7 @@
         }
       </div>
 
-      <div class="kanban-column" cdkDropList [id]="'Done'" [cdkDropListData]="doneTasks()" (cdkDropListDropped)="onDrop($event, 'Done')">
+      <div class="kanban-column" cdkDropList [id]="'Done'" [cdkDropListData]="doneTasks()" [cdkDropListConnectedTo]="['Pending','InProgress']" (cdkDropListDropped)="onDrop($event, 'Done')">
         <header class="kanban-column-header done">Done ({{ doneTasks().length }})</header>
         @for (task of doneTasks(); track task.id) {
           <div class="kanban-card-wrapper">
@@ -155,21 +155,26 @@
         } @else if (h.entries.length === 0) {
           <p class="empty">Sin cambios registrados.</p>
         } @else {
-          <ul class="history-list">
-            @for (entry of h.entries; track entry.id) {
-              <li class="history-item">
-                <div class="history-row">
-                  <span class="badge">{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</span>
-                  <span>→</span>
-                  <span class="badge">{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</span>
-                  <span class="history-date">{{ entry.changedAt | date: 'short' }}</span>
-                </div>
-                @if (entry.observation) {
-                  <p class="history-obs">{{ entry.observation }}</p>
-                }
-              </li>
-            }
-          </ul>
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Observación</th>
+                <th>Fecha/Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of h.entries; track entry.id) {
+                <tr>
+                  <td>{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</td>
+                  <td>{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</td>
+                  <td>{{ entry.observation || '—' }}</td>
+                  <td>{{ entry.changedAt | date: 'short' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         }
         <div class="modal-actions">
           <button type="button" class="btn primary" (click)="closeHistory()">Cerrar</button>
@@ -198,16 +203,22 @@
         } @else if (d.activities.length === 0) {
           <p class="empty">Sin actividades registradas.</p>
         } @else {
-          <ul class="history-list">
-            @for (entry of d.activities; track entry.id) {
-              <li class="history-item">
-                <div class="history-row">
-                  <span class="history-date">{{ entry.loggedAt | date: 'short' }}</span>
-                </div>
-                <p class="history-obs">{{ entry.description }}</p>
-              </li>
-            }
-          </ul>
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Fecha/Hora</th>
+                <th>Actividad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of d.activities; track entry.id) {
+                <tr>
+                  <td>{{ entry.loggedAt | date: 'short' }}</td>
+                  <td>{{ entry.description }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         }
 
         <div class="field">

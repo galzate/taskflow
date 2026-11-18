@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { TaskItem, TaskStatus, TaskStatusHistory, TaskActivity, UpdateTaskStatusRequest } from '../../../core/models/task.model';
 import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
@@ -15,7 +15,7 @@ import { SelectComponent, SelectOption } from '../../../shared/components/select
 
 @Component({
   selector: 'app-task-list',
-  imports: [FormsModule, DatePipe, CdkDropList, CdkDrag, CdkDragHandle, SelectComponent, AlertComponent],
+  imports: [FormsModule, DatePipe, CdkDropList, CdkDropListGroup, CdkDrag, CdkDragHandle, SelectComponent, AlertComponent],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
 })
@@ -150,6 +150,7 @@ export class TaskListComponent implements OnInit {
   cancelStatusChange(): void {
     this.observationModal.set(null);
     this.observationText.set('');
+    this.loadTasks();
   }
 
   openHistory(task: TaskItem): void {
