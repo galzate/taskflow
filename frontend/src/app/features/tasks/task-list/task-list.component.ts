@@ -44,7 +44,7 @@ export class TaskListComponent implements OnInit {
 
   readonly historyModal = signal<{ task: TaskItem; entries: TaskStatusHistory[]; loading: boolean } | null>(null);
 
-  readonly detailModal = signal<{ task: TaskItem; activities: TaskActivity[]; loading: boolean; newActivity: string } | null>(null);
+  readonly detailModal = signal<{ task: TaskItem; activities: TaskActivity[]; history: TaskStatusHistory[]; loading: boolean; newActivity: string } | null>(null);
 
   readonly pendingTasks = computed(() => this.tasks().filter((t) => t.status === 'Pending'));
   readonly inProgressTasks = computed(() => this.tasks().filter((t) => t.status === 'InProgress'));
@@ -175,7 +175,17 @@ export class TaskListComponent implements OnInit {
   }
 
   openDetail(task: TaskItem): void {
-    this.detailModal.set({ task, activities: [], loading: true, newActivity: '' });
+    this.detailModal.set({ task, activities: [], history: [], loading: true, newActivity: '' });
+    // Load both bitacoras in parallel.
+    this.taskService.getHistory(task.id).subscribe({
+      next: (entries) => {
+        const current = this.detailModal();
+        if (current) {
+          this.detailModal.set({ ...current, history: entries });
+        }
+      },
+      error: (error: unknown) => this.errorMessage.set(extractErrorMessage(error)),
+    });
     this.taskService.getActivities(task.id).subscribe({
       next: (entries) => {
         const current = this.detailModal();
@@ -185,7 +195,10 @@ export class TaskListComponent implements OnInit {
       },
       error: (error: unknown) => {
         this.errorMessage.set(extractErrorMessage(error));
-        this.detailModal.set(null);
+        const current = this.detailModal();
+        if (current) {
+          this.detailModal.set({ ...current, loading: false });
+        }
       },
     });
   }

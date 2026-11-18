@@ -200,6 +200,34 @@
           }
         </div>
 
+        <h4>Bitácora de estados</h4>
+        @if (d.loading) {
+          <p>Cargando...</p>
+        } @else if (d.history.length === 0) {
+          <p class="empty">Sin cambios de estado registrados.</p>
+        } @else {
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Observación</th>
+                <th>Fecha/Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of d.history; track entry.id) {
+                <tr>
+                  <td>{{ entry.fromStatus === 'InProgress' ? 'In Progress' : entry.fromStatus }}</td>
+                  <td>{{ entry.toStatus === 'InProgress' ? 'In Progress' : entry.toStatus }}</td>
+                  <td>{{ entry.observation }}</td>
+                  <td>{{ entry.changedAt | date: 'short' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
         <h4>Bitácora de actividad</h4>
         @if (d.loading) {
           <p>Cargando...</p>
