@@ -272,3 +272,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.readonly-value {
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.9rem;
+}

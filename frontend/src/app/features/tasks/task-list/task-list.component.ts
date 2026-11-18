@@ -232,7 +232,7 @@ export class TaskListComponent implements OnInit {
     const request = {
       title: modal.title.trim(),
       description: modal.description.trim(),
-      assignedUserId: modal.assignedUserId,
+      assignedUserId: modal.task.assignedUserId,
       metadata,
     };
 
