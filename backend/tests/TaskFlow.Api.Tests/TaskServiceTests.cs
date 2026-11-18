@@ -117,7 +117,7 @@ public class TaskServiceTests
     [Fact]
     public async Task CreateAsync_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
-        var service = new TaskService(new FakeTaskRepository(), new FakeTaskStatusHistoryRepository(), new FakeUserRepository());
+        var service = new TaskService(new FakeTaskRepository(), new FakeTaskStatusHistoryRepository(), new FakeTaskActivityRepository(), new FakeUserRepository());
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.CreateAsync(new CreateTaskRequest
@@ -167,7 +167,7 @@ public class TaskServiceTests
 
     private static TaskService CreateService(FakeTaskRepository taskRepository)
     {
-        return new TaskService(taskRepository, new FakeTaskStatusHistoryRepository(), new FakeUserRepository(ExistingUser));
+        return new TaskService(taskRepository, new FakeTaskStatusHistoryRepository(), new FakeTaskActivityRepository(), new FakeUserRepository(ExistingUser));
     }
 
     /// <summary>
@@ -261,5 +261,23 @@ public class TaskServiceTests
 
         public Task<IReadOnlyList<TaskStatusHistory>> GetByTaskIdAsync(int taskId, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<TaskStatusHistory>>(_entries.Where(e => e.TaskId == taskId).ToList());
+    }
+
+    /// <summary>
+    /// In-memory activity repository used to isolate the business rules from the database.
+    /// </summary>
+    private sealed class FakeTaskActivityRepository : ITaskActivityRepository
+    {
+        private readonly List<TaskActivity> _entries = new();
+
+        public Task AddAsync(TaskActivity entry, CancellationToken cancellationToken = default)
+        {
+            entry.Id = _entries.Count + 1;
+            _entries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<TaskActivity>> GetByTaskIdAsync(int taskId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<TaskActivity>>(_entries.Where(e => e.TaskId == taskId).ToList());
     }
 }

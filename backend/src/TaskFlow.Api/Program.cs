@@ -55,6 +55,7 @@ builder.Services.AddDbContext<TaskFlowDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskStatusHistoryRepository, TaskStatusHistoryRepository>();
+builder.Services.AddScoped<ITaskActivityRepository, TaskActivityRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 

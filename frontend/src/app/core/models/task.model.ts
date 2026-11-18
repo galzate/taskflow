@@ -32,3 +32,9 @@ export interface TaskStatusHistory {
   observation: string | null;
   changedAt: string;
 }
+
+export interface TaskActivity {
+  id: number;
+  description: string;
+  loggedAt: string;
+}

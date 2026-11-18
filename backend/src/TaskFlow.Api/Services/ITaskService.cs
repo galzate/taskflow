@@ -27,4 +27,13 @@ public interface ITaskService
     Task<IReadOnlyList<TaskStatusHistoryResponse>> GetHistoryAsync(
         int id,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TaskActivityResponse>> GetActivitiesAsync(
+        int id,
+        CancellationToken cancellationToken = default);
+
+    Task<TaskActivityResponse> AddActivityAsync(
+        int id,
+        CreateTaskActivityRequest request,
+        CancellationToken cancellationToken = default);
 }

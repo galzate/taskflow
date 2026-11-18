@@ -62,3 +62,19 @@ BEGIN
         ON dbo.TaskStatusHistory (TaskId, ChangedAt DESC);
 END;
 GO
+
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Index for the task activity bitacora.
+-- ============================================================================
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_TaskActivities_TaskId_LoggedAt'
+      AND object_id = OBJECT_ID(N'dbo.TaskActivities')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_TaskActivities_TaskId_LoggedAt
+        ON dbo.TaskActivities (TaskId, LoggedAt DESC);
+END;
+GO

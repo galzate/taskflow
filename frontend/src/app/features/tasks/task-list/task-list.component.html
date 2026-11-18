@@ -44,20 +44,23 @@
       <div class="kanban-column" cdkDropList [id]="'Pending'" [cdkDropListData]="pendingTasks()" (cdkDropListDropped)="onDrop($event, 'Pending')">
         <header class="kanban-column-header pending">Pending ({{ pendingTasks().length }})</header>
         @for (task of pendingTasks(); track task.id) {
-          <div class="kanban-card" cdkDrag [cdkDragData]="task">
-            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
-            <div class="card-title">{{ task.title }}</div>
-            @if (task.description) {
-              <p class="card-desc">{{ task.description }}</p>
-            }
-            <div class="card-meta">
-              <span>{{ task.assignedUserName }}</span>
-              @if (priorityOf(task); as priority) {
-                <span class="badge">{{ priorityLabel(priority) }}</span>
+          <div class="kanban-card-wrapper">
+            <div class="kanban-card" cdkDrag [cdkDragData]="task">
+              <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+              <div class="card-title">{{ task.title }}</div>
+              @if (task.description) {
+                <p class="card-desc">{{ task.description }}</p>
               }
+              <div class="card-meta">
+                <span>{{ task.assignedUserName }}</span>
+                @if (priorityOf(task); as priority) {
+                  <span class="badge">{{ priorityLabel(priority) }}</span>
+                }
+              </div>
             </div>
             <div class="card-actions">
-              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+              <button type="button" class="btn tiny" (click)="openHistory(task)">Bitácora</button>
+              <button type="button" class="btn tiny" (click)="openDetail(task)">Detalle</button>
             </div>
           </div>
         }
@@ -69,20 +72,23 @@
       <div class="kanban-column" cdkDropList [id]="'InProgress'" [cdkDropListData]="inProgressTasks()" (cdkDropListDropped)="onDrop($event, 'InProgress')">
         <header class="kanban-column-header in-progress">In Progress ({{ inProgressTasks().length }})</header>
         @for (task of inProgressTasks(); track task.id) {
-          <div class="kanban-card" cdkDrag [cdkDragData]="task">
-            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
-            <div class="card-title">{{ task.title }}</div>
-            @if (task.description) {
-              <p class="card-desc">{{ task.description }}</p>
-            }
-            <div class="card-meta">
-              <span>{{ task.assignedUserName }}</span>
-              @if (priorityOf(task); as priority) {
-                <span class="badge">{{ priorityLabel(priority) }}</span>
+          <div class="kanban-card-wrapper">
+            <div class="kanban-card" cdkDrag [cdkDragData]="task">
+              <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+              <div class="card-title">{{ task.title }}</div>
+              @if (task.description) {
+                <p class="card-desc">{{ task.description }}</p>
               }
+              <div class="card-meta">
+                <span>{{ task.assignedUserName }}</span>
+                @if (priorityOf(task); as priority) {
+                  <span class="badge">{{ priorityLabel(priority) }}</span>
+                }
+              </div>
             </div>
             <div class="card-actions">
               <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openDetail(task)">Detalle</button>
             </div>
           </div>
         }
@@ -94,20 +100,23 @@
       <div class="kanban-column" cdkDropList [id]="'Done'" [cdkDropListData]="doneTasks()" (cdkDropListDropped)="onDrop($event, 'Done')">
         <header class="kanban-column-header done">Done ({{ doneTasks().length }})</header>
         @for (task of doneTasks(); track task.id) {
-          <div class="kanban-card" cdkDrag [cdkDragData]="task">
-            <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
-            <div class="card-title">{{ task.title }}</div>
-            @if (task.description) {
-              <p class="card-desc">{{ task.description }}</p>
-            }
-            <div class="card-meta">
-              <span>{{ task.assignedUserName }}</span>
-              @if (priorityOf(task); as priority) {
-                <span class="badge">{{ priorityLabel(priority) }}</span>
+          <div class="kanban-card-wrapper">
+            <div class="kanban-card" cdkDrag [cdkDragData]="task">
+              <span class="drag-handle" cdkDragHandle title="Arrastra para cambiar de columna">⋮⋮</span>
+              <div class="card-title">{{ task.title }}</div>
+              @if (task.description) {
+                <p class="card-desc">{{ task.description }}</p>
               }
+              <div class="card-meta">
+                <span>{{ task.assignedUserName }}</span>
+                @if (priorityOf(task); as priority) {
+                  <span class="badge">{{ priorityLabel(priority) }}</span>
+                }
+              </div>
             </div>
             <div class="card-actions">
               <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openHistory(task)">Bitácora</button>
+              <button type="button" class="btn tiny" (mousedown)="$event.stopImmediatePropagation()" (click)="openDetail(task)">Detalle</button>
             </div>
           </div>
         }
@@ -164,6 +173,50 @@
         }
         <div class="modal-actions">
           <button type="button" class="btn primary" (click)="closeHistory()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+  <!-- Detail modal -->
+  @if (detailModal(); as d) {
+    <div class="modal-backdrop" (click)="closeDetail()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Detalle — {{ d.task.title }}</h3>
+        <div class="detail-info">
+          <p><strong>Descripción:</strong> {{ d.task.description }}</p>
+          <p><strong>Estado:</strong> {{ d.task.status === 'InProgress' ? 'In Progress' : d.task.status }}</p>
+          <p><strong>Asignada a:</strong> {{ d.task.assignedUserName }}</p>
+          <p><strong>Creada:</strong> {{ d.task.createdAt | date: 'short' }}</p>
+          @if (priorityOf(d.task); as priority) {
+            <p><strong>Prioridad:</strong> {{ priorityLabel(priority) }}</p>
+          }
+        </div>
+
+        <h4>Bitácora de actividad</h4>
+        @if (d.loading) {
+          <p>Cargando...</p>
+        } @else if (d.activities.length === 0) {
+          <p class="empty">Sin actividades registradas.</p>
+        } @else {
+          <ul class="history-list">
+            @for (entry of d.activities; track entry.id) {
+              <li class="history-item">
+                <div class="history-row">
+                  <span class="history-date">{{ entry.loggedAt | date: 'short' }}</span>
+                </div>
+                <p class="history-obs">{{ entry.description }}</p>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="field">
+          <label for="new-activity">Registrar actividad</label>
+          <textarea id="new-activity" rows="2" maxlength="1000" [ngModel]="d.newActivity" (ngModelChange)="detailModal.set({ ...d, newActivity: $event })"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" (click)="closeDetail()">Cerrar</button>
+          <button type="button" class="btn primary" [disabled]="!d.newActivity.trim()" (click)="submitActivity()">Registrar</button>
         </div>
       </div>
     </div>

@@ -15,15 +15,18 @@ public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
     private readonly ITaskStatusHistoryRepository _historyRepository;
+    private readonly ITaskActivityRepository _activityRepository;
     private readonly IUserRepository _userRepository;
 
     public TaskService(
         ITaskRepository taskRepository,
         ITaskStatusHistoryRepository historyRepository,
+        ITaskActivityRepository activityRepository,
         IUserRepository userRepository)
     {
         _taskRepository = taskRepository;
         _historyRepository = historyRepository;
+        _activityRepository = activityRepository;
         _userRepository = userRepository;
     }
 
@@ -152,6 +155,52 @@ public class TaskService : ITaskService
             Observation = entry.Observation,
             ChangedAt = entry.ChangedAt
         }).ToList();
+    }
+
+    public async Task<IReadOnlyList<TaskActivityResponse>> GetActivitiesAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
+        if (task is null)
+        {
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
+        }
+
+        var entries = await _activityRepository.GetByTaskIdAsync(id, cancellationToken);
+        return entries.Select(entry => new TaskActivityResponse
+        {
+            Id = entry.Id,
+            Description = entry.Description,
+            LoggedAt = entry.LoggedAt
+        }).ToList();
+    }
+
+    public async Task<TaskActivityResponse> AddActivityAsync(
+        int id,
+        CreateTaskActivityRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var task = await _taskRepository.GetByIdAsync(id, cancellationToken);
+        if (task is null)
+        {
+            throw new NotFoundException($"No se encontró la tarea con id {id}.");
+        }
+
+        var entry = new TaskActivity
+        {
+            TaskId = id,
+            Description = request.Description.Trim(),
+            LoggedAt = DateTime.UtcNow
+        };
+
+        await _activityRepository.AddAsync(entry, cancellationToken);
+        return new TaskActivityResponse
+        {
+            Id = entry.Id,
+            Description = entry.Description,
+            LoggedAt = entry.LoggedAt
+        };
     }
 
     /// <summary>

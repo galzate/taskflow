@@ -37,4 +37,7 @@ public class TaskItem
 
     /// <summary>Audit log of every status change (bitacora).</summary>
     public ICollection<TaskStatusHistory> StatusHistory { get; set; } = new List<TaskStatusHistory>();
+
+    /// <summary>Activity log (bitacora de actividad) recorded on the task.</summary>
+    public ICollection<TaskActivity> Activities { get; set; } = new List<TaskActivity>();
 }

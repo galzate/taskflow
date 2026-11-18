@@ -78,11 +78,29 @@ public class TasksController : ControllerBase
     [HttpGet("{id:int}/history")]
     [ProducesResponseType(typeof(IReadOnlyList<TaskStatusHistoryResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<TaskStatusHistoryResponse>>> GetHistory(
+    /// <summary>Returns the activity bitacora of a task.</summary>
+    [HttpGet("{id:int}/activities")]
+    [ProducesResponseType(typeof(IReadOnlyList<TaskActivityResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<TaskActivityResponse>>> GetActivities(
         int id,
         CancellationToken cancellationToken)
     {
-        var history = await _taskService.GetHistoryAsync(id, cancellationToken);
-        return Ok(history);
+        var activities = await _taskService.GetActivitiesAsync(id, cancellationToken);
+        return Ok(activities);
+    }
+
+    /// <summary>Registers a new activity in the task bitacora.</summary>
+    [HttpPost("{id:int}/activities")]
+    [ProducesResponseType(typeof(TaskActivityResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskActivityResponse>> AddActivity(
+        int id,
+        [FromBody] CreateTaskActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        var activity = await _taskService.AddActivityAsync(id, request, cancellationToken);
+        return CreatedAtAction(nameof(GetActivities), new { id }, activity);
     }
 }

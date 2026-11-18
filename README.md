@@ -196,7 +196,7 @@ flowchart TB
 - Crear tareas (título y descripción obligatorios, usuario asignado obligatorio).
 - Listar tareas en **tablero Kanban** (columnas Pending, In Progress, Done) con **drag and drop** para cambiar de estado.
 - Al cambiar de estado se solicita una **observación** opcional que se guarda en la **bitácora** de la tarea.
-- Cada tarea tiene una **bitácora** (historial de cambios de estado con fecha/hora y observación).
+- Cada tarea tiene una **bitácora de estados** (historial de cambios de estado con fecha/hora y observación) y una **bitácora de actividad** (registro de lo que se hizo en la tarea, con fecha/hora).
 - Filtros por **usuario** y orden por **fecha de creación** (`asc` / `desc`).
 - Cambiar el estado de una tarea: `Pending`, `InProgress`, `Done` (con validación: no se permite Pending → Done directo).
 - Metadata JSON opcional por tarea (prioridad, tags, fecha límite, etc.).
@@ -355,6 +355,8 @@ La URL base de la API se configura en `frontend/src/app/core/config/api.config.t
 | `GET` | `/api/tasks/{id}` | Tarea por id | `200`, `404` |
 | `PUT` | `/api/tasks/{id}/status` | Cambia el estado (con observación opcional) | `200`, `400`, `404`, `422` |
 | `GET` | `/api/tasks/{id}/history` | Bitácora de cambios de estado de una tarea | `200`, `404` |
+| `GET` | `/api/tasks/{id}/activities` | Bitácora de actividad de una tarea | `200`, `404` |
+| `POST` | `/api/tasks/{id}/activities` | Registra una actividad en la tarea | `201`, `400`, `404` |
 
 Ejemplos:
 
@@ -447,6 +449,15 @@ Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación 
 | `Observation` | `nvarchar(1000)` | `NULL` |
 | `ChangedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
 
+**TaskActivities (bitácora de actividad)**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| `Id` | `int identity` | **PK** `PK_TaskActivities` |
+| `TaskId` | `int` | `NOT NULL`, **FK** `FK_TaskActivities_Tasks → Tasks(Id)` (ON DELETE CASCADE) |
+| `Description` | `nvarchar(1000)` | `NOT NULL` |
+| `LoggedAt` | `datetime2(0)` | `DEFAULT SYSUTCDATETIME()` |
+
 ### 9.2 Índices
 
 | Índice | Tabla | Columnas |
@@ -456,6 +467,7 @@ Los errores se centralizan en `ExceptionHandlingMiddleware` y en la validación 
 | `IX_Tasks_AssignedUserId_Status_CreatedAt` | Tasks | `(AssignedUserId, Status, CreatedAt DESC)` + INCLUDE |
 | `IX_Tasks_Status_CreatedAt` | Tasks | `(Status, CreatedAt DESC)` + INCLUDE |
 | `PK_TaskStatusHistory` / `IX_TaskStatusHistory_TaskId_ChangedAt` | TaskStatusHistory | `Id` (clustered) / `(TaskId, ChangedAt DESC)` |
+| `PK_TaskActivities` / `IX_TaskActivities_TaskId_LoggedAt` | TaskActivities | `Id` (clustered) / `(TaskId, LoggedAt DESC)` |
 
 ### 9.3 Consulta obligatoria
 

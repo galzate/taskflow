@@ -4,7 +4,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
-import { TaskItem, TaskStatus, TaskStatusHistory, UpdateTaskStatusRequest } from '../../../core/models/task.model';
+import { TaskItem, TaskStatus, TaskStatusHistory, TaskActivity, UpdateTaskStatusRequest } from '../../../core/models/task.model';
 import { User } from '../../../core/models/user.model';
 import { AppEventsService } from '../../../core/services/app-events.service';
 import { TaskService } from '../../../core/services/task.service';
@@ -43,6 +43,8 @@ export class TaskListComponent implements OnInit {
   readonly observationText = signal('');
 
   readonly historyModal = signal<{ task: TaskItem; entries: TaskStatusHistory[]; loading: boolean } | null>(null);
+
+  readonly detailModal = signal<{ task: TaskItem; activities: TaskActivity[]; loading: boolean; newActivity: string } | null>(null);
 
   readonly pendingTasks = computed(() => this.tasks().filter((t) => t.status === 'Pending'));
   readonly inProgressTasks = computed(() => this.tasks().filter((t) => t.status === 'InProgress'));
@@ -168,6 +170,45 @@ export class TaskListComponent implements OnInit {
 
   closeHistory(): void {
     this.historyModal.set(null);
+  }
+
+  openDetail(task: TaskItem): void {
+    this.detailModal.set({ task, activities: [], loading: true, newActivity: '' });
+    this.taskService.getActivities(task.id).subscribe({
+      next: (entries) => {
+        const current = this.detailModal();
+        if (current) {
+          this.detailModal.set({ ...current, activities: entries, loading: false });
+        }
+      },
+      error: (error: unknown) => {
+        this.errorMessage.set(extractErrorMessage(error));
+        this.detailModal.set(null);
+      },
+    });
+  }
+
+  closeDetail(): void {
+    this.detailModal.set(null);
+  }
+
+  submitActivity(): void {
+    const modal = this.detailModal();
+    if (!modal || !modal.newActivity.trim()) return;
+    this.taskService.addActivity(modal.task.id, modal.newActivity.trim()).subscribe({
+      next: (entry) => {
+        const current = this.detailModal();
+        if (current) {
+          this.detailModal.set({
+            ...current,
+            activities: [...current.activities, entry],
+            newActivity: '',
+          });
+        }
+        this.successMessage.set('Actividad registrada.');
+      },
+      error: (error: unknown) => this.errorMessage.set(extractErrorMessage(error)),
+    });
   }
 
   priorityLabel(priority: string): string {

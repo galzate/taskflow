@@ -22,6 +22,9 @@ public class TaskFlowDbContext : DbContext
     /// <summary>Audit log of task status changes (bitacora).</summary>
     public DbSet<TaskStatusHistory> TaskStatusHistory => Set<TaskStatusHistory>();
 
+    /// <summary>Activity log (bitacora de actividad) of tasks.</summary>
+    public DbSet<TaskActivity> TaskActivities => Set<TaskActivity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 10-11-2026 Construido por: Ing GAAE - Applies all IEntityTypeConfiguration mappings.

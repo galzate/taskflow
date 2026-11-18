@@ -89,3 +89,24 @@ BEGIN
     );
 END;
 GO
+
+-- ============================================================================
+-- 10-11-2026 Construido por: Ing GAAE - Creates the TaskActivity table (activity bitacora).
+-- ============================================================================
+IF OBJECT_ID(N'dbo.TaskActivities', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.TaskActivities
+    (
+        Id          INT             IDENTITY(1,1) NOT NULL,
+        TaskId      INT             NOT NULL,
+        Description NVARCHAR(1000)  NOT NULL,
+        LoggedAt    DATETIME2(0)    NOT NULL
+            CONSTRAINT DF_TaskActivities_LoggedAt DEFAULT SYSUTCDATETIME(),
+
+        CONSTRAINT PK_TaskActivities PRIMARY KEY CLUSTERED (Id),
+        CONSTRAINT FK_TaskActivities_Tasks FOREIGN KEY (TaskId)
+            REFERENCES dbo.Tasks (Id)
+            ON DELETE CASCADE
+    );
+END;
+GO
